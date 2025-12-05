@@ -1,0 +1,33 @@
+# Fichiers d'IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Fichiers de build
+target/
+build/
+*.jar
+*.war
+*.ear
+
+# Fichiers de logs
+*.log
+logs/
+
+# Fichiers de système
+.DS_Store
+Thumbs.db
+
+# Dossiers temporaires
+tmp/
+temp/
+
+# Fichiers de configuration spécifiques au développement
+.env.local
+.env.development
+
+# Dossier Git
+.git/
+.gitignore
