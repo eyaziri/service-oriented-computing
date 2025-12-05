@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://smarttourism.com/soap"
+           targetNamespace="http://smarttourism.com/soap"
+           elementFormDefault="qualified">
+
+    <!-- Types complexes -->
+    <xs:complexType name="monument">
+        <xs:sequence>
+            <xs:element name="id" type="xs:string"/>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="city" type="xs:string"/>
+            <xs:element name="yearBuilt" type="xs:int"/>
+            <xs:element name="architecturalStyle" type="xs:string"/>
+            <xs:element name="unescoHeritage" type="xs:boolean"/>
+            <xs:element name="historicalPeriod" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="historicalInfo">
+        <xs:sequence>
+            <xs:element name="monumentId" type="xs:string"/>
+            <xs:element name="description" type="xs:string"/>
+            <xs:element name="historicalSignificance" type="xs:string"/>
+            <xs:element name="restorationHistory" type="xs:string" maxOccurs="unbounded"/>
+            <xs:element name="culturalImportance" type="xs:string"/>
+            <xs:element name="officialClassification" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="monthlyStatEntry">
+        <xs:sequence>
+            <xs:element name="month" type="xs:string"/>
+            <xs:element name="visitors" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="touristStats">
+        <xs:sequence>
+            <xs:element name="region" type="xs:string"/>
+            <xs:element name="year" type="xs:int"/>
+            <xs:element name="totalVisitors" type="xs:int"/>
+            <xs:element name="internationalVisitors" type="xs:int"/>
+            <xs:element name="monthlyStats" type="tns:monthlyStatEntry" maxOccurs="12"/>
+            <xs:element name="growthRate" type="xs:double"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="comparisonEntry">
+        <xs:sequence>
+            <xs:element name="key" type="xs:string"/>
+            <xs:element name="value" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="comparisonMap">
+        <xs:sequence>
+            <xs:element name="entry" type="tns:comparisonEntry" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Requêtes -->
+    <xs:element name="GetHistoricalDescriptionRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="monumentId" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetAnnualTouristStatsRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="region" type="xs:string"/>
+                <xs:element name="year" type="xs:int" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CompareHeritageSitesRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="siteAId" type="xs:string"/>
+                <xs:element name="siteBId" type="xs:string"/>
+                <xs:element name="comparisonCriteria" type="xs:string" maxOccurs="unbounded" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Réponses -->
+    <xs:element name="GetHistoricalDescriptionResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="historicalInfo" type="tns:historicalInfo"/>
+                <xs:element name="status" type="xs:string"/>
+                <xs:element name="message" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetAnnualTouristStatsResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="touristStats" type="tns:touristStats"/>
+                <xs:element name="status" type="xs:string"/>
+                <xs:element name="message" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CompareHeritageSitesResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="siteAName" type="xs:string"/>
+                <xs:element name="siteBName" type="xs:string"/>
+                <xs:element name="comparisons" type="tns:comparisonMap"/>
+                <xs:element name="recommendation" type="xs:string"/>
+                <xs:element name="status" type="xs:string"/>
+                <xs:element name="message" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
