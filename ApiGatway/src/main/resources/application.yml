@@ -38,6 +38,22 @@ spring:
             - Path=/api/attractions-service/api-docs
           filters:
             - SetPath=/api-docs
+        # route WSDL (GET)
+        - id: cultural-soap-wsdl
+          uri: lb://CULTURAL-SOAP-SERVICE
+          predicates:
+            - Path=/soap/wsdl/**         # ex: http://localhost:8080/soap/wsdl/culturalArchive.wsdl
+          filters:
+            - StripPrefix=2              # enlève /soap/wsdl -> envoie /culturalArchive.wsdl au service
+
+        # route pour le endpoint SOAP (POST)
+        - id: cultural-soap-endpoint
+          uri: lb://CULTURAL-SOAP-SERVICE
+          predicates:
+            - Path=/soap/ws/**           # ex: http://localhost:8080/soap/ws
+          filters:
+            - StripPrefix=1              # enlève /soap -> envoie /ws au service
+
 
 eureka:
   client:

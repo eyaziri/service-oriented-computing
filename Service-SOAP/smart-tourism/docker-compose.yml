@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  mysql-db:  # Optionnel - supprimez si vous utilisez votre MySQL local
+    image: mysql:8.0
+    container_name: smart-tourism-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 112233**
+      MYSQL_DATABASE: smart_tourism
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  soap-service:
+    build: .
+    container_name: soap-service
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      # Utilisez votre MySQL local (MySQL Workbench)
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/smart_tourism?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 112233**
+      SERVER_PORT: "8090"
+      # Désactivez la vérification de compatibilité
+      SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  mysql-data:

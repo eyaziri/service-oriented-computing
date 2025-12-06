@@ -46,7 +46,7 @@ public class SoapClient {
 
         this.webServiceTemplate.setMarshaller(marshaller);
         this.webServiceTemplate.setUnmarshaller(marshaller);
-        this.webServiceTemplate.setDefaultUri("http://localhost:8080/ws");
+        this.webServiceTemplate.setDefaultUri("http://localhost:8090/ws");
 
         try {
             marshaller.afterPropertiesSet(); // Important !
@@ -88,10 +88,11 @@ public class SoapClient {
         System.out.println("\n=== DEBUG: Préparation requête ===");
         System.out.println("Type de requête: " + request.getClass().getName());
 
-        jakarta.xml.bind.annotation.XmlRootElement annotation =
-                request.getClass().getAnnotation(jakarta.xml.bind.annotation.XmlRootElement.class);
+        jakarta.xml.bind.annotation.XmlRootElement annotation = request.getClass()
+                .getAnnotation(jakarta.xml.bind.annotation.XmlRootElement.class);
         if (annotation != null) {
-            System.out.println("Annotation @XmlRootElement: " + annotation.name() + " (namespace: " + annotation.namespace() + ")");
+            System.out.println("Annotation @XmlRootElement: " + annotation.name() + " (namespace: "
+                    + annotation.namespace() + ")");
         } else {
             System.out.println("⚠️ PAS d'annotation @XmlRootElement !");
         }
