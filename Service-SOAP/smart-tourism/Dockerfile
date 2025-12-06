@@ -1,0 +1,36 @@
+# Étape 1: Build avec Maven
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+
+WORKDIR /app
+
+# Copier les fichiers
+COPY pom.xml .
+COPY src ./src
+
+# Télécharger les dépendances
+RUN mvn dependency:go-offline -B
+
+# Compiler
+RUN mvn clean package -DskipTests
+
+# Étape 2: Runtime
+FROM eclipse-temurin:17-jre-alpine
+
+# Installer curl pour healthcheck
+RUN apk add --no-cache curl
+
+WORKDIR /app
+
+# Créer utilisateur non-root
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copier le JAR
+COPY --from=builder /app/target/*.jar app.jar
+
+EXPOSE 8090
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Dans le Dockerfile, ajoutez :
+ENV SPRING_PROFILES_ACTIVE=docker,notest

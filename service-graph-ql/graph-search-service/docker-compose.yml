@@ -1,0 +1,70 @@
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: graphql-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 112233**
+      MYSQL_DATABASE: smart_tourism_graph_ql
+      MYSQL_USER: graphql_user
+      MYSQL_PASSWORD: graphql123
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-graphql-data:/var/lib/mysql
+    networks:
+      - graphql-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  graphql-service:
+    build: .
+    container_name: graphql-service
+    restart: unless-stopped
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql-db
+      DB_NAME: smart_tourism_graph_ql
+      DB_USER: root
+      DB_PASS: 112233**
+      DB_PORT: 3306
+      PORT: 4000
+    networks:
+      - graphql-network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/graphql"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: graphql-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - mysql-db
+    environment:
+      PMA_HOST: mysql-db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 512M
+    ports:
+      - "8083:80"
+    networks:
+      - graphql-network
+
+volumes:
+  mysql-graphql-data:
+
+networks:
+  graphql-network:
+    driver: bridge
