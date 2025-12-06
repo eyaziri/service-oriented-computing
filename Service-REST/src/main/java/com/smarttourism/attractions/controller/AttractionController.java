@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/attractions")
+@RequestMapping("/attractions")
 @RequiredArgsConstructor
 @Tag(name = "Attractions", description = "Endpoints pour la gestion des attractions touristiques")
 public class AttractionController {

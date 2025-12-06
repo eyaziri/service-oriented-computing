@@ -1,0 +1,99 @@
+# ========================================
+# EUREKA SERVER CONFIGURATION
+# ========================================
+
+server:
+  port: 8761
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: eureka-server
+  profiles:
+    active: default
+
+# ========================================
+# EUREKA SPECIFIC CONFIGURATION
+# ========================================
+
+eureka:
+  client:
+    # Eureka server ne s'enregistre pas lui-même
+    register-with-eureka: false
+    fetch-registry: false
+    
+    # URL du serveur Eureka (lui-même dans ce cas)
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  
+  server:
+    # Désactive la self-preservation en développement
+    enable-self-preservation: false
+    
+    # Intervalle d'éviction des instances non rénewées (5 secondes pour dev)
+    eviction-interval-timer-in-ms: 5000
+    
+    # Délai avant expiration d'une instance (10 secondes pour dev)
+    response-cache-update-interval-ms: 5000
+  
+  instance:
+    # Préférer l'adresse IP pour l'enregistrement
+    prefer-ip-address: true
+    
+    # Délai entre renouvellements (5 secondes pour dev)
+    lease-renewal-interval-in-seconds: 5
+    
+    # Durée avant expiration (10 secondes pour dev)
+    lease-expiration-duration-in-seconds: 10
+
+# ========================================
+# ACTUATOR & MONITORING
+# ========================================
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+    enabled-by-default: true
+  
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+  
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+  
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+# ========================================
+# LOGGING CONFIGURATION
+# ========================================
+
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+    org.springframework.cloud.netflix.eureka: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/eureka-server.log

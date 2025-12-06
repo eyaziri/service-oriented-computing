@@ -1,0 +1,66 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      
+      routes:
+        # Route pour attractions-service (REST)
+        - id: attractions-service
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions/**
+          filters:
+            - StripPrefix=2  # ⚠️ Changé de 1 à 2 pour enlever /api/attractions
+            - name: CircuitBreaker
+              args:
+                name: attractionsCircuit
+                fallbackUri: forward:/fallback/attractions
+        
+        # Route pour Swagger/OpenAPI
+        - id: attractions-swagger
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions-service/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+        
+        - id: attractions-api-docs
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions-service/api-docs
+          filters:
+            - SetPath=/api-docs
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,routes
+  endpoint:
+    gateway:
+      enabled: true
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG

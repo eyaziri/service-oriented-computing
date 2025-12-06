@@ -1,0 +1,9 @@
+.git/
+.mvn/
+mvnw*
+.DS_Store
+*.iml
+*.log
+.idea/
+.vscode/
+# DO NOT exclude target/ - we need the JAR!

@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Service de notification gRPC
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smart-tourism-notification
+    ports:
+      - "8083:8083"  # Port HTTP Spring Boot
+      - "9090:9090"  # Port gRPC
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/smart_tourism_notification
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=Ameni123$
+    depends_on:
+      - mysql-db
+    networks:
+      - smart-tourism-network
+    restart: unless-stopped
+
+  # Base de données MySQL
+  mysql-db:
+    image: mysql:8.0
+    container_name: smart-tourism-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=Ameni123$
+      - MYSQL_DATABASE=smart_tourism_notification
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - smart-tourism-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pAmeni123$"]
+      interval: 5s
+      retries: 10
+
+
+  # Adminer pour la gestion de la base de données (optionnel)
+  adminer:
+    image: adminer
+    container_name: smart-tourism-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - smart-tourism-network
+    restart: unless-stopped
+
+networks:
+  smart-tourism-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
