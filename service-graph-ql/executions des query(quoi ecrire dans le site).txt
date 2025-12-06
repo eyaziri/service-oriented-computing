@@ -1,0 +1,66 @@
+npm run seed    # pour remplir quelques données
+npm start       # lance le serveur GraphQL
+
+
+
+12. Tester le service GraphQL (Playground)
+
+Ouvre ton navigateur : http://localhost:4000/
+
+
+*******************************************************************************************
+
+Exemple de requête (Query) — rechercher attractions culturelles à prix ≤ 15 :
+
+*******************************************************************************************
+
+
+query {
+  searchAttractions(filter: { category: "Culture", maxPrice: 15 }) {
+    id
+    name
+    city
+    price
+    tags
+    location { lat lng }
+  }
+}
+
+
+*******************************************************************************************
+
+Exemple de Mutation — créer une nouvelle attraction :
+
+*******************************************************************************************
+
+
+mutation {
+  createAttraction(input: {
+    name: "Nouveau Musée",
+    city: "Sousse",
+    category: "Culture",
+    price: 8,
+    tags: ["culture","museum"],
+    lat: 35.8256,
+    lng: 10.6340
+  }) {
+    id
+    name
+    city
+  }
+}
+
+*******************************************************************************************
+
+Exemple pour récupérer une attraction par id :
+
+*******************************************************************************************
+
+
+query {
+  attraction(id: 1) {
+    id
+    name
+    tags
+  }
+}
