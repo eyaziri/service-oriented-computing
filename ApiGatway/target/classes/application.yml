@@ -70,18 +70,13 @@ spring:
           predicates:
             - Path=/api/attractions/**
           filters:
-<<<<<<< HEAD
-            - RewritePath=/api/attractions(?<segment>/?.*), /attractions$\{segment}
-=======
-            - StripPrefix=2
->>>>>>> b863c5b0c1bf2c1ed0a1d2b30a5751704b776a09
+            # Réécrit /api/attractions/... -> /attractions/...
+            - RewritePath=/api/attractions(?<segment>/?.*), /attractions${segment}
             - name: CircuitBreaker
               args:
                 name: attractionsCircuit
                 fallbackUri: forward:/fallback/attractions
         
-<<<<<<< HEAD
-=======
         # Routes Swagger/OpenAPI pour attractions
         - id: attractions-swagger
           uri: lb://ATTRACTIONS-SERVICE
@@ -127,7 +122,6 @@ spring:
           filters:
             - StripPrefix=1               # /sandbox -> /
 
->>>>>>> b863c5b0c1bf2c1ed0a1d2b30a5751704b776a09
 eureka:
   client:
     service-url:

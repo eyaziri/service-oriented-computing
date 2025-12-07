@@ -110,16 +110,16 @@ spring:
         - id: graphql-service
           uri: lb://GRAPHQL-SERVICE
           predicates:
-            - Path=/graphql/**
+            - Path=/graphql/**            # accès aux requêtes GraphQL
           filters:
-            - StripPrefix=1
+            - StripPrefix=1               # /graphql -> /
 
         - id: graphql-playground
           uri: lb://GRAPHQL-SERVICE
           predicates:
-            - Path=/sandbox/**
+            - Path=/sandbox/**           # accès à Apollo Sandbox
           filters:
-            - StripPrefix=1
+            - StripPrefix=1               # /sandbox -> /
 
 eureka:
   client:

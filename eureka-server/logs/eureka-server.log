@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 2025-12-07 00:00:02 [Eureka-EvictionTimer] INFO  c.n.e.r.AbstractInstanceRegistry - Running the evict task with compensationTime 6ms
 2025-12-07 00:00:07 [Eureka-EvictionTimer] INFO  c.n.e.r.AbstractInstanceRegistry - Running the evict task with compensationTime 0ms
 2025-12-07 00:00:12 [Eureka-EvictionTimer] INFO  c.n.e.r.AbstractInstanceRegistry - Running the evict task with compensationTime 9ms
@@ -12574,6 +12575,8 @@ java.lang.IllegalStateException: Client instance has been closed.
 2025-12-07 13:54:59 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Shutting down DiscoveryClient ...
 2025-12-07 13:54:59 [SpringApplicationShutdownHook] INFO  c.netflix.discovery.DiscoveryClient - Completed shut down of DiscoveryClient
 =======
+=======
+>>>>>>> b863c5b0c1bf2c1ed0a1d2b30a5751704b776a09
 2025-12-07 09:18:15 [restartedMain] INFO  c.s.eureka.EurekaServerApplication - Starting EurekaServerApplication using Java 17.0.11 with PID 14416 (C:\Users\HP\Desktop\service-oriented-computing\eureka-server\target\classes started by HP in C:\Users\HP\Desktop\service-oriented-computing\eureka-server)
 2025-12-07 09:18:15 [restartedMain] INFO  c.s.eureka.EurekaServerApplication - The following 1 profile is active: "default"
 2025-12-07 09:18:15 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
@@ -15548,4 +15551,7 @@ java.lang.IllegalStateException: Client instance has been closed.
 2025-12-07 13:10:49 [Eureka-EvictionTimer] INFO  c.n.e.r.AbstractInstanceRegistry - Running the evict task with compensationTime 14ms
 2025-12-07 13:10:54 [Eureka-EvictionTimer] INFO  c.n.e.r.AbstractInstanceRegistry - Running the evict task with compensationTime 13ms
 2025-12-07 13:10:59 [Eureka-EvictionTimer] INFO  c.n.e.r.AbstractInstanceRegistry - Running the evict task with compensationTime 14ms
+<<<<<<< HEAD
 
+=======
+>>>>>>> b863c5b0c1bf2c1ed0a1d2b30a5751704b776a09
