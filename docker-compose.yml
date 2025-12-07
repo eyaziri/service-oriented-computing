@@ -1,0 +1,19 @@
+services:
+  eureka-server:
+    build: ./eureka-server
+    ports:
+      - "8761:8761"
+
+  apigateway:
+    build: ./ApiGatway
+    ports:
+      - "8088:8088"
+    depends_on:
+      - eureka-server
+
+  service-soap:
+    build: ./Service-SOAP/smart-tourism
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server

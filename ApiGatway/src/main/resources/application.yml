@@ -70,12 +70,57 @@ spring:
           predicates:
             - Path=/api/attractions/**
           filters:
-            - RewritePath=/api/attractions(?<segment>/?.*), /attractions$\{segment}
+            - StripPrefix=2
             - name: CircuitBreaker
               args:
                 name: attractionsCircuit
                 fallbackUri: forward:/fallback/attractions
+
+        # Routes Swagger/OpenAPI pour attractions
+        - id: attractions-swagger
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions-service/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
         
+        - id: attractions-api-docs
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions-service/api-docs
+          filters:
+            - SetPath=/api-docs
+
+        # Routes SOAP
+        - id: cultural-soap-wsdl
+          uri: lb://CULTURAL-SOAP-SERVICE
+          predicates:
+            - Path=/soap/wsdl/**
+          filters:
+            - StripPrefix=2
+
+        - id: cultural-soap-endpoint
+          uri: lb://CULTURAL-SOAP-SERVICE
+          predicates:
+            - Path=/soap/ws/**
+          filters:
+            - StripPrefix=1
+
+        # Routes GraphQL
+        - id: graphql-service
+          uri: lb://GRAPHQL-SERVICE
+          predicates:
+            - Path=/graphql/**
+          filters:
+            - StripPrefix=1
+
+        - id: graphql-playground
+          uri: lb://GRAPHQL-SERVICE
+          predicates:
+            - Path=/sandbox/**
+          filters:
+            - StripPrefix=1
+
 eureka:
   client:
     service-url:

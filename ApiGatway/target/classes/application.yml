@@ -70,12 +70,64 @@ spring:
           predicates:
             - Path=/api/attractions/**
           filters:
+<<<<<<< HEAD
             - RewritePath=/api/attractions(?<segment>/?.*), /attractions$\{segment}
+=======
+            - StripPrefix=2
+>>>>>>> b863c5b0c1bf2c1ed0a1d2b30a5751704b776a09
             - name: CircuitBreaker
               args:
                 name: attractionsCircuit
                 fallbackUri: forward:/fallback/attractions
         
+<<<<<<< HEAD
+=======
+        # Routes Swagger/OpenAPI pour attractions
+        - id: attractions-swagger
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions-service/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+        
+        - id: attractions-api-docs
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions-service/api-docs
+          filters:
+            - SetPath=/api-docs
+
+        # Routes SOAP
+        - id: cultural-soap-wsdl
+          uri: lb://CULTURAL-SOAP-SERVICE
+          predicates:
+            - Path=/soap/wsdl/**
+          filters:
+            - StripPrefix=2
+
+        - id: cultural-soap-endpoint
+          uri: lb://CULTURAL-SOAP-SERVICE
+          predicates:
+            - Path=/soap/ws/**
+          filters:
+            - StripPrefix=1
+
+        # Routes GraphQL
+        - id: graphql-service
+          uri: lb://GRAPHQL-SERVICE
+          predicates:
+            - Path=/graphql/**            # accès aux requêtes GraphQL
+          filters:
+            - StripPrefix=1               # /graphql -> /
+
+        - id: graphql-playground
+          uri: lb://GRAPHQL-SERVICE
+          predicates:
+            - Path=/sandbox/**           # accès à Apollo Sandbox
+          filters:
+            - StripPrefix=1               # /sandbox -> /
+
+>>>>>>> b863c5b0c1bf2c1ed0a1d2b30a5751704b776a09
 eureka:
   client:
     service-url:
