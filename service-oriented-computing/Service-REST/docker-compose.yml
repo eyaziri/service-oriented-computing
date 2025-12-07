@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: smart-tourism-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 112233**
+      MYSQL_DATABASE: smart_tourism_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - smart-tourism-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  attractions-service:
+    build: .
+    container_name: attractions-service
+    restart: unless-stopped
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/smart_tourism_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Ameni123$
+      SERVER_PORT: 8081
+    networks:
+      - smart-tourism-network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: smart-tourism-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - mysql-db
+    environment:
+      PMA_HOST: mysql-db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 512M
+    ports:
+      - "8082:80"
+    networks:
+      - smart-tourism-network
+
+volumes:
+  mysql-data:
+
+networks:
+  smart-tourism-network:
+    driver: bridge

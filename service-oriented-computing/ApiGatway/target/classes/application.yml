@@ -1,0 +1,195 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+
+        # ============================================
+        # ALERT-ORCHESTRATOR (gRPC client + REST)
+        # ============================================
+        - id: alert-orchestrator
+          uri: lb://ALERT-ORCHESTRATOR
+          predicates:
+            - Path=/api/alerts/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: alertsCircuit
+                fallbackUri: forward:/fallback/alerts
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE, GATEWAY_TIMEOUT
+                methods: GET,POST
+                backoff:
+                  firstBackoff: 50ms
+                  maxBackoff: 500ms
+                  factor: 2
+
+        # SSE alerts
+        - id: alerts-sse
+          uri: lb://ALERT-ORCHESTRATOR
+          predicates:
+            - Path=/api/alerts/sse
+          filters:
+            - SetResponseHeader=Content-Type, text/event-stream;charset=UTF-8
+            - SetResponseHeader=Cache-Control, no-cache
+            - SetResponseHeader=Connection, keep-alive
+            - SetResponseHeader=X-Accel-Buffering, no
+
+
+        # ============================================
+        # NOTIFICATION SERVICE
+        # ============================================
+        - id: notification-service-rest
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/notification/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: notificationCircuit
+                fallbackUri: forward:/fallback/notification
+
+
+        # ============================================
+        # ATTRACTIONS SERVICE (REST + Swagger)
+        # ============================================
+        - id: attractions-service
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: attractionsCircuit
+                fallbackUri: forward:/fallback/attractions
+
+        # Swagger
+        - id: attractions-swagger
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions-service/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+
+        - id: attractions-api-docs
+          uri: lb://ATTRACTIONS-SERVICE
+          predicates:
+            - Path=/api/attractions-service/api-docs
+          filters:
+            - SetPath=/api-docs
+
+
+        # ============================================
+        # SOAP SERVICE
+        # ============================================
+        - id: cultural-soap-wsdl
+          uri: lb://CULTURAL-SOAP-SERVICE
+          predicates:
+            - Path=/soap/wsdl/**
+          filters:
+            - StripPrefix=2
+
+        - id: cultural-soap-endpoint
+          uri: lb://CULTURAL-SOAP-SERVICE
+          predicates:
+            - Path=/soap/ws/**
+          filters:
+            - StripPrefix=1
+
+
+        # ============================================
+        # GRAPHQL SERVICE
+        # ============================================
+        - id: graphql-service
+          uri: lb://GRAPHQL-SERVICE
+          predicates:
+            - Path=/graphql/**
+          filters:
+            - StripPrefix=1
+
+        - id: graphql-playground
+          uri: lb://GRAPHQL-SERVICE
+          predicates:
+            - Path=/sandbox/**
+          filters:
+            - StripPrefix=1
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 5
+
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+
+# ============================================
+# RESILIENCE4J CIRCUIT BREAKERS
+# ============================================
+resilience4j:
+  circuitbreaker:
+    instances:
+      alertsCircuit:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        permittedNumberOfCallsInHalfOpenState: 3
+
+      notificationCircuit:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+
+      attractionsCircuit:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+
+
+# ============================================
+# ACTUATOR
+# ============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway,circuitbreakers,routes
+    enabled-by-default: true
+
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+
+# ============================================
+# LOGGING
+# ============================================
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
