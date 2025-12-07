@@ -1,6 +1,7 @@
 version: '3.8'
+
 services:
-  mysql-db:  # Optionnel - supprimez si vous utilisez votre MySQL local
+  mysql-db:
     image: mysql:8.0
     container_name: smart-tourism-mysql
     restart: unless-stopped
@@ -19,15 +20,34 @@ services:
     ports:
       - "8090:8090"
     environment:
-      # Utilisez votre MySQL local (MySQL Workbench)
+      # Database
       SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/smart_tourism?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 112233**
+      
+      # Application
       SERVER_PORT: "8090"
-      # Désactivez la vérification de compatibilité
-      SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED: "false"
+      SPRING_APPLICATION_NAME: "cultural-soap-service"
+      
+      # Eureka
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://host.docker.internal:8761/eureka/"
+      EUREKA_INSTANCE_HOSTNAME: "localhost"
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
+      EUREKA_CLIENT_FETCH_REGISTRY: "true"
+      
+      # Actuator
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,metrics"
+      
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - mysql-db
+    networks:
+      - smart-tourism-network
+
+networks:
+  smart-tourism-network:
+    driver: bridge
 
 volumes:
   mysql-data:

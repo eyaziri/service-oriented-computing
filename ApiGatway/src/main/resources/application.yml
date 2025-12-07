@@ -18,13 +18,13 @@ spring:
           predicates:
             - Path=/api/attractions/**
           filters:
-            - StripPrefix=2  # ⚠️ Changé de 1 à 2 pour enlever /api/attractions
+            - StripPrefix=2
             - name: CircuitBreaker
               args:
                 name: attractionsCircuit
                 fallbackUri: forward:/fallback/attractions
         
-        # Route pour Swagger/OpenAPI
+        # Routes Swagger/OpenAPI pour attractions
         - id: attractions-swagger
           uri: lb://ATTRACTIONS-SERVICE
           predicates:
@@ -38,22 +38,36 @@ spring:
             - Path=/api/attractions-service/api-docs
           filters:
             - SetPath=/api-docs
-        # route WSDL (GET)
+
+        # Routes SOAP
         - id: cultural-soap-wsdl
           uri: lb://CULTURAL-SOAP-SERVICE
           predicates:
-            - Path=/soap/wsdl/**         # ex: http://localhost:8080/soap/wsdl/culturalArchive.wsdl
+            - Path=/soap/wsdl/**
           filters:
-            - StripPrefix=2              # enlève /soap/wsdl -> envoie /culturalArchive.wsdl au service
+            - StripPrefix=2
 
-        # route pour le endpoint SOAP (POST)
         - id: cultural-soap-endpoint
           uri: lb://CULTURAL-SOAP-SERVICE
           predicates:
-            - Path=/soap/ws/**           # ex: http://localhost:8080/soap/ws
+            - Path=/soap/ws/**
           filters:
-            - StripPrefix=1              # enlève /soap -> envoie /ws au service
+            - StripPrefix=1
 
+        # Routes GraphQL
+        - id: graphql-service
+          uri: lb://GRAPHQL-SERVICE
+          predicates:
+            - Path=/graphql/**            # accès aux requêtes GraphQL
+          filters:
+            - StripPrefix=1               # /graphql -> /
+
+        - id: graphql-playground
+          uri: lb://GRAPHQL-SERVICE
+          predicates:
+            - Path=/sandbox/**           # accès à Apollo Sandbox
+          filters:
+            - StripPrefix=1               # /sandbox -> /
 
 eureka:
   client:
