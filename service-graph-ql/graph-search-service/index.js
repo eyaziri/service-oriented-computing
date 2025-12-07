@@ -1,31 +1,47 @@
 require('dotenv').config();
 const { ApolloServer } = require('apollo-server');
-const { ApolloServerPluginLandingPageGraphQLPlayground } = require('apollo-server-core');
 const typeDefs = require('./schema/typeDefs');
 const resolvers = require('./schema/resolvers');
 const { sequelize } = require('./models/index');
+const eurekaClient = require('./eureka-client'); // Import Eureka client
 
 const PORT = process.env.PORT || 4000;
 
 async function start() {
   try {
     console.log('🔌 Connexion à MySQL...');
+    console.log(`   Host: ${process.env.DB_HOST}`);
+    console.log(`   Database: ${process.env.DB_NAME}`);
+    
     await sequelize.authenticate();
     console.log('✅ Connexion MySQL OK');
 
+    // Sync la base
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true });
+      console.log('🔄 Base synchronisée (mode développement)');
     } else {
       await sequelize.sync();
+      console.log('📦 Base synchronisée (mode production)');
     }
+
+    // Démarrer le client Eureka
+    console.log('🔄 Enregistrement auprès d\'Eureka Server...');
+    eurekaClient.start(error => {
+      if (error) {
+        console.error('❌ Erreur Eureka:', error);
+      } else {
+        console.log('✅ Service enregistré auprès d\'Eureka Server');
+        console.log(`   Eureka Server: http://eureka-server:8761`);
+        console.log(`   Service ID: graphql-service`);
+      }
+    });
 
     const server = new ApolloServer({
       typeDefs,
       resolvers,
       context: ({ req }) => ({}),
       introspection: true,
-      // Réactive l'ancien GraphQL Playground
-      plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
       cors: {
         origin: '*',
         credentials: true
@@ -34,27 +50,23 @@ async function start() {
 
     const { url } = await server.listen({ port: PORT });
     
-    console.log('\n🎉 GRAPHQL SERVER READY!');
+    console.log('\n🎉 SERVEUR GRAPHQL PRÊT !');
     console.log('========================================');
-    console.log(`🚀 GraphQL Playground: ${url}`);
-    console.log(`📡 GraphQL Endpoint: ${url}graphql`);
+    console.log(`🚀 GraphQL: ${url}`);
+    console.log(`📡 Eureka Dashboard: http://eureka-server:8761`);
+    console.log(`🔧 Apollo Sandbox: ${url}`);
     console.log('========================================');
-    
-    // Affiche des exemples de requêtes
-    console.log('\n💡 Exemple de requêtes :');
-    console.log('```graphql');
-    console.log('query {');
-    console.log('  searchAttractions(limit: 3) {');
-    console.log('    id');
-    console.log('    name');
-    console.log('    city');
-    console.log('    price');
-    console.log('  }');
-    console.log('}');
-    console.log('```');
+
+    // Gérer l'arrêt propre
+    process.on('SIGINT', () => {
+      console.log('\n🛑 Arrêt du service...');
+      eurekaClient.stop();
+      process.exit();
+    });
 
   } catch (err) {
-    console.error('❌ Startup error:', err.message);
+    console.error('❌ Erreur démarrage :', err.message);
+    console.error('📋 Détails:', err.stack);
     process.exit(1);
   }
 }
