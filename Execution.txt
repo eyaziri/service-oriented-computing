@@ -1,0 +1,12 @@
+**************execution graph-ql :****************
+
+cd service-graph-ql
+cd graph-search-service
+npm install
+npm start
+
+
+**************execution service Rest :****************
+
+cd Service-REST
+mvn clean spring-boot:run
