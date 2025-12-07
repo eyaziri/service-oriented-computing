@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.smarttourism.notification";
+option java_outer_classname = "NotificationProto";
+
+package notification;
+
+// Service de notification en temps reel
+service NotificationService {
+  // Envoi d'une alerte simple
+  rpc SendAlert (AlertRequest) returns (AlertResponse);
+  
+  // Stream d'alertes en direct
+  rpc StreamAlerts (StreamRequest) returns (stream AlertResponse);
+  
+  // Verification d'alertes actives
+  rpc CheckActiveAlerts (CheckRequest) returns (AlertListResponse);
+  
+  // Bi-directional streaming (optionnel)
+  rpc ChatAlerts (stream AlertRequest) returns (stream AlertResponse);
+}
+
+// Types de messages
+message AlertRequest {
+  string alertId = 1;
+  string type = 2;         // WEATHER, CROWD, SECURITY, TRAFFIC, TEST
+  string location = 3;
+  string message = 4;
+  int32 severity = 5;      // 1-5
+}
+
+message AlertResponse {
+  string alertId = 1;
+  string type = 2;
+  string location = 3;
+  string message = 4;
+  int32 severity = 5;
+  string timestamp = 6;
+  string status = 7;       // ACTIVE, RESOLVED, PENDING
+}
+
+message StreamRequest {
+  string location = 1;
+  repeated string alertTypes = 2;
+}
+
+message CheckRequest {
+  string location = 1;
+}
+
+message AlertListResponse {
+  repeated AlertResponse alerts = 1;
+}

@@ -1,83 +1,137 @@
 package com.smarttourism.notification.controller;
 
 import com.smarttourism.notification.dto.CreateNotificationRequest;
-import com.smarttourism.notification.dto.NotificationResponse;
 import com.smarttourism.notification.entity.Notification;
 import com.smarttourism.notification.service.NotificationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.time.format.DateTimeFormatter;
+
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/notifications")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/notification")
+@RequiredArgsConstructor
 public class NotificationController {
-
-    @Autowired
-    private NotificationService notificationService;
     
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-
-    @PostMapping("/alert")
-    public ResponseEntity<NotificationResponse> createAlert(@RequestBody CreateNotificationRequest request) {
-        Notification alert = notificationService.createAlert(
-            request.getType(),
-            request.getLocation(),
-            request.getMessage(),
-            request.getSeverity()
-        );
+    private final NotificationService notificationService;
+    
+    @PostMapping("/alerts")
+    public ResponseEntity<Map<String, Object>> createAlert(@RequestBody CreateNotificationRequest request) {
+        Notification alert = notificationService.createAlert(request);
         
-        return ResponseEntity.ok(toResponse(alert));
-    }
-
-    @GetMapping("/active")
-    public ResponseEntity<List<NotificationResponse>> getActiveAlerts() {
-        List<Notification> alerts = notificationService.getAllActiveAlerts();
-        List<NotificationResponse> responses = alerts.stream()
-            .map(this::toResponse)
-            .collect(Collectors.toList());
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Alert created successfully");
+        response.put("alertId", alert.getAlertId());
+        response.put("alert", convertToMap(alert));
         
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/active/location/{location}")
-    public ResponseEntity<List<NotificationResponse>> getActiveAlertsByLocation(@PathVariable String location) {
-        List<Notification> alerts = notificationService.getActiveAlertsByLocation(location);
-        List<NotificationResponse> responses = alerts.stream()
-            .map(this::toResponse)
-            .collect(Collectors.toList());
+    
+    @GetMapping("/alerts")
+    public ResponseEntity<Map<String, Object>> getAllAlerts() {
+        List<Notification> alerts = notificationService.getAllAlerts();
         
-        return ResponseEntity.ok(responses);
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("count", alerts.size());
+        response.put("alerts", alerts.stream()
+            .map(this::convertToMap)
+            .toList());
+        
+        return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/active/type/{type}")
-    public ResponseEntity<List<NotificationResponse>> getActiveAlertsByType(@PathVariable String type) {
+    
+    @GetMapping("/alerts/active")
+    public ResponseEntity<Map<String, Object>> getActiveAlerts() {
+        List<Notification> alerts = notificationService.getActiveAlerts();
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("count", alerts.size());
+        response.put("alerts", alerts.stream()
+            .map(this::convertToMap)
+            .toList());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/alerts/location/{location}")
+    public ResponseEntity<Map<String, Object>> getAlertsByLocation(@PathVariable String location) {
+        List<Notification> alerts = notificationService.getAlertsByLocation(location);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("location", location);
+        response.put("count", alerts.size());
+        response.put("alerts", alerts.stream()
+            .map(this::convertToMap)
+            .toList());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/alerts/type/{type}")
+    public ResponseEntity<Map<String, Object>> getAlertsByType(@PathVariable String type) {
         List<Notification> alerts = notificationService.getAlertsByType(type);
-        List<NotificationResponse> responses = alerts.stream()
-            .map(this::toResponse)
-            .collect(Collectors.toList());
         
-        return ResponseEntity.ok(responses);
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("type", type);
+        response.put("count", alerts.size());
+        response.put("alerts", alerts.stream()
+            .map(this::convertToMap)
+            .toList());
+        
+        return ResponseEntity.ok(response);
     }
-
-    @PutMapping("/resolve/{alertId}")
-    public ResponseEntity<NotificationResponse> resolveAlert(@PathVariable String alertId) {
+    
+    @PutMapping("/alerts/{alertId}/resolve")
+    public ResponseEntity<Map<String, Object>> resolveAlert(@PathVariable String alertId) {
         Notification alert = notificationService.resolveAlert(alertId);
-        return ResponseEntity.ok(toResponse(alert));
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Alert resolved successfully");
+        response.put("alert", convertToMap(alert));
+        
+        return ResponseEntity.ok(response);
     }
-
-    private NotificationResponse toResponse(Notification alert) {
-        return new NotificationResponse(
-            alert.getAlertId(),
-            alert.getType().toString(),
-            alert.getLocation(),
-            alert.getMessage(),
-            alert.getSeverity(),
-            alert.getStatus().toString(),
-            alert.getTimestamp().format(FORMATTER)
-        );
+    
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        long activeCount = notificationService.countActiveAlerts();
+        List<Notification> recentAlerts = notificationService.getRecentAlerts(10);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("activeAlerts", activeCount);
+        response.put("recentAlerts", recentAlerts.stream()
+            .map(this::convertToMap)
+            .toList());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    // REMOVED: /health and /info endpoints - they're already in HealthController
+    // If you need them here, use different paths like /service-health or /service-info
+    
+    // Méthode utilitaire pour convertir Notification en Map
+    private Map<String, Object> convertToMap(Notification alert) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("alertId", alert.getAlertId());
+        map.put("type", alert.getType().name());
+        map.put("location", alert.getLocation());
+        map.put("message", alert.getMessage());
+        map.put("severity", alert.getSeverity());
+        map.put("status", alert.getStatus().name());
+        map.put("timestamp", alert.getTimestamp().toString());
+        if (alert.getResolvedAt() != null) {
+            map.put("resolvedAt", alert.getResolvedAt().toString());
+        }
+        return map;
     }
 }

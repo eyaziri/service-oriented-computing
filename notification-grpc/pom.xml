@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -15,25 +15,50 @@
     <groupId>com.smarttourism</groupId>
     <artifactId>notification-service</artifactId>
     <version>1.0.0</version>
+    <packaging>jar</packaging>
+    
     <name>notification-service</name>
     <description>gRPC Notification Service for Smart Tourism Platform</description>
 
     <properties>
+        <!-- CRITICAL: Set UTF-8 encoding -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        
         <java.version>17</java.version>
-        <grpc.version>1.61.0</grpc.version>
-        <protobuf.version>3.25.3</protobuf.version>
-        <os.detected.classifier>windows-x86_64</os.detected.classifier>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        
+        <!-- FIXED: Compatible versions for gRPC and Spring Boot gRPC starter -->
+        <grpc.version>1.58.0</grpc.version>
+        <protobuf.version>3.24.0</protobuf.version>
+        <grpc-spring-boot.version>2.15.0.RELEASE</grpc-spring-boot.version>
+        <spring-cloud.version>2023.0.0</spring-cloud.version>
+        <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
     </properties>
 
     <dependencies>
-        <!-- Spring Boot -->
+        <!-- Spring Boot Starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Eureka Client -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+
+        <!-- Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <!-- MySQL -->
@@ -43,22 +68,25 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- gRPC -->
+        <!-- gRPC Dependencies -->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
             <version>${grpc.version}</version>
         </dependency>
+        
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
             <version>${grpc.version}</version>
         </dependency>
+        
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
             <version>${grpc.version}</version>
         </dependency>
+        
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
@@ -79,7 +107,7 @@
             <version>${protobuf.version}</version>
         </dependency>
 
-        <!-- Utils -->
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -94,8 +122,30 @@
         </dependency>
     </dependencies>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <build>
+        <extensions>
+            <!-- OS Maven Plugin for detecting OS and architecture -->
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os-maven-plugin.version}</version>
+            </extension>
+        </extensions>
+
         <plugins>
+            <!-- Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -108,8 +158,8 @@
                     </excludes>
                 </configuration>
             </plugin>
-            
-            <!-- Protobuf Plugin -->
+
+            <!-- Protobuf Maven Plugin -->
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
@@ -118,24 +168,47 @@
                     <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+                    <protoSourceRoot>${project.basedir}/src/main/proto</protoSourceRoot>
+                    <clearOutputDirectory>false</clearOutputDirectory>
                 </configuration>
                 <executions>
+                    <!-- First: Generate Protocol Buffer classes -->
                     <execution>
+                        <id>compile-protobuf</id>
                         <goals>
                             <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/generated-sources/protobuf/java</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <!-- Second: Generate gRPC service stubs -->
+                    <execution>
+                        <id>compile-grpc</id>
+                        <goals>
                             <goal>compile-custom</goal>
                         </goals>
+                        <configuration>
+                            <pluginId>grpc-java</pluginId>
+                            <outputDirectory>${project.build.directory}/generated-sources/protobuf/grpc-java</outputDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-            
-            <!-- Compiler Plugin -->
+
+            <!-- Maven Compiler Plugin with UTF-8 encoding -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <source>17</source>
+                    <target>17</target>
+                    <!-- CRITICAL: Force UTF-8 encoding -->
+                    <encoding>UTF-8</encoding>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -143,6 +216,16 @@
                             <version>1.18.30</version>
                         </path>
                     </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Resources Plugin with UTF-8 encoding -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
         </plugins>

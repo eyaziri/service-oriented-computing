@@ -12,54 +12,120 @@ spring:
           lower-case-service-id: true
       
       routes:
-        # Route pour attractions-service (REST)
+        # ============================================
+        # ROUTES POUR ALERT ORCHESTRATOR (gRPC Client)
+        # ============================================
+        
+        # Route générale pour les alertes
+        - id: alert-orchestrator
+          uri: lb://ALERT-ORCHESTRATOR
+          predicates:
+            - Path=/api/alerts/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: alertsCircuit
+                fallbackUri: forward:/fallback/alerts
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE, GATEWAY_TIMEOUT
+                methods: GET,POST
+                backoff:
+                  firstBackoff: 50ms
+                  maxBackoff: 500ms
+                  factor: 2
+        
+        # Route SSE (Server-Sent Events) - IMPORTANT !
+        - id: alerts-sse
+          uri: lb://ALERT-ORCHESTRATOR
+          predicates:
+            - Path=/api/alerts/sse
+          filters:
+            - SetResponseHeader=Content-Type, text/event-stream;charset=UTF-8
+            - SetResponseHeader=Cache-Control, no-cache
+            - SetResponseHeader=Connection, keep-alive
+            - SetResponseHeader=X-Accel-Buffering, no
+        
+        # ============================================
+        # ROUTES POUR NOTIFICATION SERVICE (gRPC Server)
+        # ============================================
+        
+        - id: notification-service-rest
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/notification/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: notificationCircuit
+                fallbackUri: forward:/fallback/notification
+        
+        # ============================================
+        # ROUTES POUR ATTRACTIONS SERVICE
+        # ============================================
+        
         - id: attractions-service
           uri: lb://ATTRACTIONS-SERVICE
           predicates:
             - Path=/api/attractions/**
           filters:
-            - StripPrefix=2  # ⚠️ Changé de 1 à 2 pour enlever /api/attractions
+            - RewritePath=/api/attractions(?<segment>/?.*), /attractions$\{segment}
             - name: CircuitBreaker
               args:
                 name: attractionsCircuit
                 fallbackUri: forward:/fallback/attractions
         
-        # Route pour Swagger/OpenAPI
-        - id: attractions-swagger
-          uri: lb://ATTRACTIONS-SERVICE
-          predicates:
-            - Path=/api/attractions-service/swagger-ui.html
-          filters:
-            - SetPath=/swagger-ui.html
-        
-        - id: attractions-api-docs
-          uri: lb://ATTRACTIONS-SERVICE
-          predicates:
-            - Path=/api/attractions-service/api-docs
-          filters:
-            - SetPath=/api-docs
-
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
+    registry-fetch-interval-seconds: 5
+    
   instance:
     hostname: localhost
     prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
 
+# Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      alertsCircuit:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        permittedNumberOfCallsInHalfOpenState: 3
+      notificationCircuit:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+      attractionsCircuit:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+
+# Actuator
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway,routes
+        include: health,info,metrics,gateway,circuitbreakers
+    enabled-by-default: true
+  
   endpoint:
-    gateway:
-      enabled: true
     health:
       show-details: always
+    gateway:
+      enabled: true
 
+# Logging
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG

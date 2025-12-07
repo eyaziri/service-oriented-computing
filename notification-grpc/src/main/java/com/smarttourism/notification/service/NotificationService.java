@@ -1,61 +1,111 @@
 package com.smarttourism.notification.service;
 
+import com.smarttourism.notification.dto.CreateNotificationRequest;
 import com.smarttourism.notification.entity.Notification;
 import com.smarttourism.notification.repository.NotificationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class NotificationService {
-
-    @Autowired
-    private NotificationRepository repository;
-
-    public Notification createAlert(String type, String location, String message, int severity) {
+    
+    private final NotificationRepository notificationRepository;
+    
+    public Notification createAlert(CreateNotificationRequest request) {
+        log.info("Creating alert: type={}, location={}", request.getType(), request.getLocation());
+        
         Notification alert = new Notification();
-        alert.setAlertId(generateAlertId());
-        alert.setType(Notification.AlertType.valueOf(type.toUpperCase()));
-        alert.setLocation(location);
-        alert.setMessage(message);
-        alert.setSeverity(Math.min(Math.max(severity, 1), 5)); // Clamp 1-5
+        alert.setAlertId(UUID.randomUUID().toString());
+        alert.setType(Notification.AlertType.valueOf(request.getType()));
+        alert.setLocation(request.getLocation());
+        alert.setMessage(request.getMessage());
+        alert.setSeverity(request.getSeverity());
         alert.setStatus(Notification.AlertStatus.ACTIVE);
         alert.setTimestamp(LocalDateTime.now());
-        return repository.save(alert);
+        
+        Notification savedAlert = notificationRepository.save(alert);
+        log.info("Alert created with ID: {}", savedAlert.getAlertId());
+        
+        return savedAlert;
     }
-
-    public List<Notification> getActiveAlertsByLocation(String location) {
-        return repository.findByLocationAndStatus(location, Notification.AlertStatus.ACTIVE);
-    }
-
-    public List<Notification> getAllActiveAlerts() {
-        return repository.findByStatus(Notification.AlertStatus.ACTIVE);
-    }
-
+    
     public Notification resolveAlert(String alertId) {
-        return repository.findByAlertId(alertId).map(alert -> {
-            alert.setStatus(Notification.AlertStatus.RESOLVED);
-            alert.setResolvedAt(LocalDateTime.now());
-            return repository.save(alert);
-        }).orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
+        log.info("Resolving alert: {}", alertId);
+        
+        Notification alert = notificationRepository.findById(alertId)
+                .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
+        
+        alert.setStatus(Notification.AlertStatus.RESOLVED);
+        alert.setResolvedAt(LocalDateTime.now());
+        
+        return notificationRepository.save(alert);
     }
-
+    
+    @Transactional(readOnly = true)
+    public List<Notification> getAllAlerts() {
+        return notificationRepository.findAll();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Notification> getActiveAlerts() {
+        return notificationRepository.findByStatus(Notification.AlertStatus.ACTIVE);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Notification> getAlertsByLocation(String location) {
+        return notificationRepository.findByLocationContainingIgnoreCase(location);
+    }
+    
+    @Transactional(readOnly = true)
     public List<Notification> getAlertsByType(String type) {
-        return repository.findByTypeAndStatus(
-            Notification.AlertType.valueOf(type.toUpperCase()),
-            Notification.AlertStatus.ACTIVE
-        );
+        return notificationRepository.findByType(Notification.AlertType.valueOf(type));
     }
-
-    public List<Notification> getHighSeverityAlerts(int threshold) {
-        return repository.findBySeverityGreaterThanEqual(threshold);
+    
+    @Transactional(readOnly = true)
+    public List<Notification> getAlertsBySeverity(Integer severity) {
+        return notificationRepository.findBySeverityGreaterThanEqual(severity);
     }
-
-    private String generateAlertId() {
-        return "ALERT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    
+    public Notification updateAlertSeverity(String alertId, Integer severity) {
+        Notification alert = notificationRepository.findById(alertId)
+                .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
+        
+        alert.setSeverity(severity);
+        return notificationRepository.save(alert);
+    }
+    
+    public Notification updateAlertMessage(String alertId, String message) {
+        Notification alert = notificationRepository.findById(alertId)
+                .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
+        
+        alert.setMessage(message);
+        return notificationRepository.save(alert);
+    }
+    
+    public Notification updateAlertLocation(String alertId, String location) {
+        Notification alert = notificationRepository.findById(alertId)
+                .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
+        
+        alert.setLocation(location);
+        return notificationRepository.save(alert);
+    }
+    
+    @Transactional(readOnly = true)
+    public long countActiveAlerts() {
+        return notificationRepository.countByStatus(Notification.AlertStatus.ACTIVE);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Notification> getRecentAlerts(int limit) {
+        return notificationRepository.findRecentAlerts(limit);
     }
 }

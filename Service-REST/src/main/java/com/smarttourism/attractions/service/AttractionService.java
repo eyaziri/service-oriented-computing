@@ -4,6 +4,7 @@ import com.smarttourism.attractions.dto.AttractionDTO;
 import com.smarttourism.attractions.dto.requests.CreateAttractionRequest;
 import com.smarttourism.attractions.Entities.Attraction;
 import com.smarttourism.attractions.Entities.Category;
+import com.smarttourism.attractions.Entities.Location;
 import com.smarttourism.attractions.exception.BusinessException;
 import com.smarttourism.attractions.exception.ErrorCode;
 import com.smarttourism.attractions.exception.ResourceNotFoundException;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -248,28 +250,62 @@ public class AttractionService {
                 "entryPrice", "Le prix ne peut pas être négatif");
         }
         
-        if (request.getAverageVisitDuration() != null && request.getAverageVisitDuration() <= 0) {
+        if (request.getEstimatedVisitDuration() != null && request.getEstimatedVisitDuration() <= 0) {
             throw new ValidationException(ErrorCode.INVALID_PARAMETERS,
-                "averageVisitDuration", "La durée moyenne doit être positive");
+                "estimatedVisitDuration", "La durée moyenne doit être positive");
         }
     }
     
     private void mapRequestToAttraction(CreateAttractionRequest request, Attraction attraction) {
         attraction.setName(request.getName());
-        // ❌ SUPPRIMER: attraction.setCity(request.getCity());
-        // Le city est maintenant dans location
         attraction.setDescription(request.getDescription());
         attraction.setCategory(request.getCategory());
-        attraction.setLocation(request.getLocation());
+        
+        // ✅ CORRECTION 1: Mapper le location avec city
+        if (request.getLocation() != null) {
+            Location location = new Location();
+            location.setAddress(request.getLocation().getAddress());
+            location.setLatitude(request.getLocation().getLatitude());
+            location.setLongitude(request.getLocation().getLongitude());
+            location.setCity(request.getCity()); // Copier city depuis la racine
+            attraction.setLocation(location);
+        }
+        
         attraction.setEntryPrice(request.getEntryPrice());
-        attraction.setOpeningTime(request.getOpeningTime());
-        attraction.setClosingTime(request.getClosingTime());
+        
+        // ✅ CORRECTION 2: Parser les heures si elles sont des Strings
+        if (request.getOpeningHours() != null) {
+            try {
+                attraction.setOpeningTime(LocalTime.parse(request.getOpeningHours()));
+            } catch (Exception e) {
+                log.warn("Format d'heure d'ouverture invalide: {}", request.getOpeningHours());
+            }
+        }
+        
+        if (request.getClosingHours() != null) {
+            try {
+                attraction.setClosingTime(LocalTime.parse(request.getClosingHours()));
+            } catch (Exception e) {
+                log.warn("Format d'heure de fermeture invalide: {}", request.getClosingHours());
+            }
+        }
+        
         attraction.setMaxCapacity(request.getMaxCapacity());
         attraction.setImageUrl(request.getImageUrl());
-        attraction.setWebsiteUrl(request.getWebsiteUrl());
+        
+        // ✅ CORRECTION 3: Mapper websiteUrl
+        if (request.getWebsite() != null) {
+            attraction.setWebsiteUrl(request.getWebsite());
+        }
+        
         attraction.setPhoneNumber(request.getPhoneNumber());
         attraction.setEmail(request.getEmail());
-        attraction.setAverageVisitDuration(request.getAverageVisitDuration());
+        
+        // ✅ CORRECTION 4: Mapper estimatedVisitDuration vers averageVisitDuration
+        if (request.getEstimatedVisitDuration() != null) {
+            attraction.setAverageVisitDuration(request.getEstimatedVisitDuration());
+        }
+        
         attraction.setIsFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false);
     }
     

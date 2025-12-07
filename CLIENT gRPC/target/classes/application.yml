@@ -1,0 +1,117 @@
+spring:
+  application:
+    name: alert-orchestrator
+  
+  cloud:
+    loadbalancer:
+      grpc:
+        enabled: true
+        cache:
+          enabled: true
+          ttl: 30s
+
+server:
+  port: 8084
+  shutdown: graceful
+
+# Configuration Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+    enabled: true
+    registry-fetch-interval-seconds: 5
+    
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    hostname: localhost
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# Configuration gRPC Client
+grpc:
+  client:
+    notification-service:
+      address: discovery:///notification-service
+      enable-keep-alive: true
+      keep-alive-time: 30s
+      keep-alive-timeout: 5s
+      negotiation-type: plaintext
+      max-inbound-message-size: 4194304  # 4MB
+      
+      # Configuration du load balancing
+      loadBalancingPolicy: round_robin
+      
+      # Retry configuration
+      retry:
+        enabled: true
+        maxAttempts: 3
+        initialBackoff: 1s
+        maxBackoff: 10s
+        backoffMultiplier: 1.5
+
+# Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      notificationService:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+  
+  retry:
+    instances:
+      notificationService:
+        maxAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+          - io.grpc.StatusRuntimeException
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,circuitbreakers
+    enabled-by-default: true
+  
+  endpoint:
+    health:
+      show-details: always
+  
+  # FIXED: New property path for Prometheus metrics export
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  
+  # Additional metrics configuration
+  metrics:
+    enable:
+      jvm: true
+      system: true
+      http: true
+      process: true
+
+# Logging Configuration
+logging:
+  level:
+    com.smarttourism.orchestrator: DEBUG
+    org.springframework.cloud.netflix.eureka: INFO
+    io.grpc: INFO
+    net.devh.boot.grpc: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.boot.actuate.metrics: INFO
+  
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
+  
+  file:
+    name: logs/alert-orchestrator.log

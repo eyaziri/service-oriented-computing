@@ -15,4 +15,6 @@ public class NotificationResponse {
     private Integer severity;
     private String status;
     private String timestamp;
+    private String resolvedAt; // Nouveau champ
+
 }

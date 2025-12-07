@@ -18,5 +18,6 @@ C:\Users\user\Desktop\service-oriented-computing\notification-grpc\src\main\java
 C:\Users\user\Desktop\service-oriented-computing\notification-grpc\target\generated-sources\protobuf\java\com\smarttourism\notification\AlertResponseOrBuilder.java
 C:\Users\user\Desktop\service-oriented-computing\notification-grpc\target\generated-sources\protobuf\java\com\smarttourism\notification\StreamRequestOrBuilder.java
 C:\Users\user\Desktop\service-oriented-computing\notification-grpc\target\generated-sources\protobuf\java\com\smarttourism\notification\CheckRequest.java
+C:\Users\user\Desktop\service-oriented-computing\notification-grpc\src\main\java\com\smarttourism\notification\controller\HealthController.java
 C:\Users\user\Desktop\service-oriented-computing\notification-grpc\src\main\java\com\smarttourism\notification\service\NotificationService.java
 C:\Users\user\Desktop\service-oriented-computing\notification-grpc\target\generated-sources\protobuf\java\com\smarttourism\notification\AlertResponse.java

@@ -1,139 +1,155 @@
 package com.smarttourism.notification.service.grpc;
 
+import com.smarttourism.notification.dto.CreateNotificationRequest;
 import com.smarttourism.notification.entity.Notification;
 import com.smarttourism.notification.service.NotificationService;
-import io.grpc.stub.StreamObserver;
-import net.devh.boot.grpc.server.service.GrpcService;
-import org.springframework.beans.factory.annotation.Autowired;
-import java.time.format.DateTimeFormatter;
 
+// FIXED: Correct imports for generated protobuf classes
+import com.smarttourism.notification.AlertRequest;
+import com.smarttourism.notification.AlertResponse;
+import com.smarttourism.notification.StreamRequest;
+import com.smarttourism.notification.CheckRequest;
+import com.smarttourism.notification.AlertListResponse;
+import com.smarttourism.notification.NotificationServiceGrpc;
+
+import io.grpc.stub.StreamObserver;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.server.service.GrpcService;
+
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@Slf4j
 @GrpcService
-public class NotificationGrpcServiceImpl 
-    extends com.smarttourism.notification.NotificationServiceGrpc.NotificationServiceImplBase {
-
-    @Autowired
-    private NotificationService notificationService;
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-
+@RequiredArgsConstructor
+public class NotificationGrpcServiceImpl extends NotificationServiceGrpc.NotificationServiceImplBase {
+    
+    private final NotificationService notificationService;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    
     @Override
-    public void sendAlert(com.smarttourism.notification.AlertRequest request,
-                          StreamObserver<com.smarttourism.notification.AlertResponse> responseObserver) {
+    public void sendAlert(AlertRequest request, StreamObserver<AlertResponse> responseObserver) {
+        log.info("gRPC: Sending alert - type: {}, location: {}", request.getType(), request.getLocation());
         
         try {
-            // 1. Créer l'alerte via le service
-            Notification alert = notificationService.createAlert(
-                request.getType(),
-                request.getLocation(),
-                request.getMessage(),
-                request.getSeverity()
-            );
-
-            // 2. Construire la réponse gRPC
-            com.smarttourism.notification.AlertResponse response = 
-                com.smarttourism.notification.AlertResponse.newBuilder()
-                .setAlertId(alert.getAlertId())
-                .setType(alert.getType().toString())
-                .setLocation(alert.getLocation())
-                .setMessage(alert.getMessage())
-                .setSeverity(alert.getSeverity())
-                .setTimestamp(alert.getTimestamp().format(FORMATTER))
-                .setStatus(alert.getStatus().toString())
+            // Convertir la requête gRPC en DTO
+            CreateNotificationRequest dtoRequest = new CreateNotificationRequest();
+            dtoRequest.setType(request.getType());
+            dtoRequest.setLocation(request.getLocation());
+            dtoRequest.setMessage(request.getMessage());
+            dtoRequest.setSeverity(request.getSeverity());
+            
+            // Créer l'alerte via le service
+            Notification notification = notificationService.createAlert(dtoRequest);
+            
+            // Construire la réponse gRPC
+            AlertResponse response = AlertResponse.newBuilder()
+                .setAlertId(notification.getAlertId())
+                .setType(notification.getType().name())
+                .setLocation(notification.getLocation())
+                .setMessage(notification.getMessage())
+                .setSeverity(notification.getSeverity())
+                .setTimestamp(notification.getTimestamp().format(formatter))
+                .setStatus(notification.getStatus().name())
                 .build();
-
+            
             responseObserver.onNext(response);
             responseObserver.onCompleted();
             
-        } catch (Exception e) {
-            responseObserver.onError(io.grpc.Status.INTERNAL
-                .withDescription("Failed to create alert: " + e.getMessage())
-                .asRuntimeException());
-        }
-    }
-
-    @Override
-    public void streamAlerts(com.smarttourism.notification.StreamRequest request,
-                             StreamObserver<com.smarttourism.notification.AlertResponse> responseObserver) {
-        
-        try {
-            List<Notification> activeAlerts = notificationService.getAllActiveAlerts();
-            
-            // Filtrer par localisation si spécifiée
-            activeAlerts.stream()
-                .filter(alert -> request.getLocation().isEmpty() || 
-                        alert.getLocation().equalsIgnoreCase(request.getLocation()))
-                .filter(alert -> request.getAlertTypesList().isEmpty() || 
-                        request.getAlertTypesList().contains(alert.getType().toString()))
-                .forEach(alert -> {
-                    com.smarttourism.notification.AlertResponse response = 
-                        com.smarttourism.notification.AlertResponse.newBuilder()
-                        .setAlertId(alert.getAlertId())
-                        .setType(alert.getType().toString())
-                        .setLocation(alert.getLocation())
-                        .setMessage(alert.getMessage())
-                        .setSeverity(alert.getSeverity())
-                        .setTimestamp(alert.getTimestamp().format(FORMATTER))
-                        .setStatus(alert.getStatus().toString())
-                        .build();
-                    
-                    responseObserver.onNext(response);
-                    
-                    try {
-                        Thread.sleep(500); // Simulation de délai
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                });
-            
-            responseObserver.onCompleted();
+            log.info("gRPC: Alert sent successfully - ID: {}", notification.getAlertId());
             
         } catch (Exception e) {
-            responseObserver.onError(io.grpc.Status.INTERNAL
-                .withDescription("Stream error: " + e.getMessage())
-                .asRuntimeException());
+            log.error("gRPC: Error sending alert", e);
+            responseObserver.onError(e);
         }
     }
-
+    
     @Override
-    public void checkActiveAlerts(com.smarttourism.notification.CheckRequest request,
-                                  StreamObserver<com.smarttourism.notification.AlertListResponse> responseObserver) {
+    public void streamAlerts(StreamRequest request, StreamObserver<AlertResponse> responseObserver) {
+        log.info("gRPC: Streaming alerts for location: {}", request.getLocation());
         
         try {
-            List<Notification> alerts;
+            List<Notification> activeAlerts;
             
             if (request.getLocation().isEmpty()) {
-                alerts = notificationService.getAllActiveAlerts();
+                activeAlerts = notificationService.getActiveAlerts();
             } else {
-                alerts = notificationService.getActiveAlertsByLocation(request.getLocation());
+                activeAlerts = notificationService.getAlertsByLocation(request.getLocation());
             }
-
-            com.smarttourism.notification.AlertListResponse.Builder responseBuilder = 
-                com.smarttourism.notification.AlertListResponse.newBuilder();
-
-            alerts.forEach(alert -> {
-                com.smarttourism.notification.AlertResponse grpcAlert = 
-                    com.smarttourism.notification.AlertResponse.newBuilder()
+            
+            // Filtrer par types si spécifiés
+            if (!request.getAlertTypesList().isEmpty()) {
+                activeAlerts = activeAlerts.stream()
+                    .filter(alert -> request.getAlertTypesList().contains(alert.getType().name()))
+                    .toList();
+            }
+            
+            // Stream chaque alerte
+            for (Notification alert : activeAlerts) {
+                AlertResponse response = AlertResponse.newBuilder()
                     .setAlertId(alert.getAlertId())
-                    .setType(alert.getType().toString())
+                    .setType(alert.getType().name())
                     .setLocation(alert.getLocation())
                     .setMessage(alert.getMessage())
                     .setSeverity(alert.getSeverity())
-                    .setTimestamp(alert.getTimestamp().format(FORMATTER))
-                    .setStatus(alert.getStatus().toString())
+                    .setTimestamp(alert.getTimestamp().format(formatter))
+                    .setStatus(alert.getStatus().name())
                     .build();
                 
-                responseBuilder.addAlerts(grpcAlert);
-            });
-
+                responseObserver.onNext(response);
+                
+                // Simuler un délai pour le streaming
+                Thread.sleep(500);
+            }
+            
+            responseObserver.onCompleted();
+            log.info("gRPC: Stream completed - {} alerts sent", activeAlerts.size());
+            
+        } catch (Exception e) {
+            log.error("gRPC: Error in streaming alerts", e);
+            responseObserver.onError(e);
+        }
+    }
+    
+    @Override
+    public void checkActiveAlerts(CheckRequest request, StreamObserver<AlertListResponse> responseObserver) {
+        log.info("gRPC: Checking active alerts for location: {}", request.getLocation());
+        
+        try {
+            List<Notification> activeAlerts;
+            
+            if (request.getLocation().isEmpty()) {
+                activeAlerts = notificationService.getActiveAlerts();
+            } else {
+                activeAlerts = notificationService.getAlertsByLocation(request.getLocation());
+            }
+            
+            // Construire la réponse
+            AlertListResponse.Builder responseBuilder = AlertListResponse.newBuilder();
+            
+            for (Notification alert : activeAlerts) {
+                AlertResponse alertResponse = AlertResponse.newBuilder()
+                    .setAlertId(alert.getAlertId())
+                    .setType(alert.getType().name())
+                    .setLocation(alert.getLocation())
+                    .setMessage(alert.getMessage())
+                    .setSeverity(alert.getSeverity())
+                    .setTimestamp(alert.getTimestamp().format(formatter))
+                    .setStatus(alert.getStatus().name())
+                    .build();
+                
+                responseBuilder.addAlerts(alertResponse);
+            }
+            
             responseObserver.onNext(responseBuilder.build());
             responseObserver.onCompleted();
             
+            log.info("gRPC: Active alerts checked - found {} alerts", activeAlerts.size());
+            
         } catch (Exception e) {
-            responseObserver.onError(io.grpc.Status.INTERNAL
-                .withDescription("Failed to check alerts: " + e.getMessage())
-                .asRuntimeException());
+            log.error("gRPC: Error checking active alerts", e);
+            responseObserver.onError(e);
         }
     }
 }

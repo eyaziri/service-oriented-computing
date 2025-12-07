@@ -2,14 +2,11 @@ package com.smarttourism.attractions.dto.requests;
 
 import com.smarttourism.attractions.Entities.Category;
 import com.smarttourism.attractions.Entities.Location;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalTime;
 
 @Data
 @NoArgsConstructor
@@ -17,45 +14,52 @@ import java.time.LocalTime;
 public class CreateAttractionRequest {
     
     @NotBlank(message = "Le nom est obligatoire")
-    @Size(max = 200, message = "Le nom ne doit pas dépasser 200 caractères")
+    @Size(min = 3, max = 200, message = "Le nom doit contenir entre 3 et 200 caractères")
     private String name;
     
+    @NotBlank(message = "La description est obligatoire")
+    @Size(min = 10, max = 2000, message = "La description doit contenir entre 10 et 2000 caractères")
+    private String description;
+    
     @NotBlank(message = "La ville est obligatoire")
-    @Size(max = 100, message = "La ville ne doit pas dépasser 100 caractères")
     private String city;
     
-    @Size(max = 2000, message = "La description ne doit pas dépasser 2000 caractères")
-    private String description;
+    @NotNull(message = "La localisation est obligatoire")
+    @Valid
+    private Location location;
     
     @NotNull(message = "La catégorie est obligatoire")
     private Category category;
     
-    @NotNull(message = "La localisation est obligatoire")
-    private Location location;
+    @NotNull(message = "Le prix d'entrée est obligatoire")
+    @Min(value = 0, message = "Le prix ne peut pas être négatif")
+    private Double entryPrice;
     
-    @PositiveOrZero(message = "Le prix d'entrée doit être positif ou zéro")
-    private Double entryPrice = 0.0;
+    @NotBlank(message = "L'heure d'ouverture est obligatoire")
+    @Pattern(regexp = "^([01]\\d|2[0-3]):([0-5]\\d)$", message = "Format d'heure invalide (HH:mm)")
+    private String openingHours;
     
-    private LocalTime openingTime;
-    private LocalTime closingTime;
+    @NotBlank(message = "L'heure de fermeture est obligatoire")
+    @Pattern(regexp = "^([01]\\d|2[0-3]):([0-5]\\d)$", message = "Format d'heure invalide (HH:mm)")
+    private String closingHours;
     
-    @PositiveOrZero(message = "La capacité maximale doit être positive ou zéro")
+    @Min(value = 1, message = "La capacité maximale doit être au moins 1")
     private Integer maxCapacity;
     
-    @Size(max = 500, message = "L'URL de l'image ne doit pas dépasser 500 caractères")
+    @Min(value = 1, message = "La durée estimée doit être au moins 1 minute")
+    private Integer estimatedVisitDuration;
+    
     private String imageUrl;
     
-    @Size(max = 500, message = "L'URL du site web ne doit pas dépasser 500 caractères")
-    private String websiteUrl;
+    @Pattern(regexp = "^(https?://)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([/\\w \\.-]*)*/?$", 
+             message = "URL invalide")
+    private String website;
     
-    @Size(max = 20, message = "Le numéro de téléphone ne doit pas dépasser 20 caractères")
+    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Numéro de téléphone invalide")
     private String phoneNumber;
     
-    @Size(max = 100, message = "L'email ne doit pas dépasser 100 caractères")
+    @Email(message = "Email invalide")
     private String email;
     
-    @PositiveOrZero(message = "La durée moyenne de visite doit être positive")
-    private Integer averageVisitDuration;
-    
-    private Boolean isFeatured = false;
+    private Boolean isFeatured;
 }
