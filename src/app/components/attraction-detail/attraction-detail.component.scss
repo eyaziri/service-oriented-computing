@@ -1,0 +1,1320 @@
+// Variables
+$primary-color: #1976d2;
+$secondary-color: #ff4081;
+$success-color: #4caf50;
+$warning-color: #ff9800;
+$danger-color: #f44336;
+$light-bg: #f5f5f5;
+$dark-bg: #212121;
+$text-primary: #333333;
+$text-secondary: #666666;
+$text-light: #999999;
+$border-color: #e0e0e0;
+$shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+$shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.15);
+$shadow-heavy: 0 8px 24px rgba(0, 0, 0, 0.2);
+$border-radius: 12px;
+$border-radius-sm: 8px;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin card-style {
+  background: white;
+  border-radius: $border-radius;
+  box-shadow: $shadow-light;
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: $shadow-medium;
+  }
+}
+
+@mixin responsive-grid($columns, $gap: 20px) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
+}
+
+// Styles principaux
+.attraction-detail-container {
+  min-height: 100vh;
+  background-color: $light-bg;
+}
+
+// État de chargement
+.loading-state {
+  @include flex-center;
+  @include flex-column;
+  height: 60vh;
+  gap: 20px;
+
+  mat-spinner {
+    ::ng-deep circle {
+      stroke: $primary-color !important;
+    }
+  }
+
+  p {
+    font-size: 1.2rem;
+    color: $text-secondary;
+    font-weight: 500;
+  }
+}
+
+// Section Hero
+.attraction-hero {
+  position: relative;
+  height: 400px;
+  margin-bottom: 30px;
+  border-radius: 0 0 $border-radius $border-radius;
+  overflow: hidden;
+
+  .hero-image {
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
+    padding: 30px;
+    @include flex-column;
+    justify-content: flex-end;
+  }
+
+  .back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    color: $text-primary;
+
+    &:hover {
+      background: white;
+      transform: scale(1.1);
+    }
+  }
+
+  .hero-content {
+    color: white;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+
+    .category-badge {
+      display: inline-block;
+      background: $primary-color;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      margin: 0 0 15px 0;
+      line-height: 1.2;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-subtitle {
+      @include flex-between;
+      flex-wrap: wrap;
+      gap: 20px;
+
+      .location {
+        @include flex-center;
+        gap: 8px;
+        font-size: 1.1rem;
+
+        mat-icon {
+          font-size: 1.2rem;
+          height: 1.2rem;
+          width: 1.2rem;
+        }
+      }
+
+      .hero-rating {
+        @include flex-center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 8px 16px;
+        border-radius: 25px;
+
+        .stars {
+          @include flex-center;
+          gap: 2px;
+
+          mat-icon {
+            color: #ffd700;
+            font-size: 1.3rem;
+            height: 1.3rem;
+            width: 1.3rem;
+          }
+        }
+
+        .rating-value {
+          font-size: 1.3rem;
+          font-weight: 700;
+        }
+
+        .reviews-count {
+          font-size: 0.95rem;
+          opacity: 0.9;
+        }
+      }
+    }
+  }
+}
+
+// Contenu principal
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+  @include responsive-grid(2, 30px);
+  align-items: start;
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Colonne gauche
+.left-column {
+  @include flex-column;
+  gap: 30px;
+}
+
+// Navigation des onglets
+.tabs-navigation {
+  @include flex-center;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: white;
+  border-radius: $border-radius;
+  padding: 10px;
+  box-shadow: $shadow-light;
+
+  button {
+    @include flex-center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: $border-radius-sm;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &.active {
+      background: $primary-color;
+      color: white;
+      box-shadow: 0 2px 8px rgba($primary-color, 0.3);
+
+      mat-icon {
+        color: white;
+      }
+    }
+
+    &:hover:not(.active) {
+      background: rgba($primary-color, 0.1);
+    }
+
+    mat-icon {
+      font-size: 1.2rem;
+      height: 1.2rem;
+      width: 1.2rem;
+    }
+  }
+}
+
+// Contenu des onglets
+.tab-content {
+  @include card-style;
+  margin-bottom: 20px;
+
+  h2 {
+    color: $text-primary;
+    font-size: 1.8rem;
+    margin: 0 0 25px 0;
+    padding-bottom: 15px;
+    border-bottom: 2px solid $border-color;
+  }
+}
+
+// Onglet Aperçu
+.overview {
+  .description-section {
+    margin-bottom: 30px;
+
+    .description {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: $text-secondary;
+      margin: 0;
+    }
+  }
+
+  .highlights-section {
+    margin-bottom: 40px;
+
+    .highlights-grid {
+      @include responsive-grid(2, 20px);
+      margin-top: 20px;
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+
+      .highlight {
+        @include flex-center;
+        gap: 20px;
+        padding: 20px;
+        background: rgba($primary-color, 0.05);
+        border-radius: $border-radius;
+        transition: transform 0.3s ease;
+
+        &:hover {
+          transform: translateY(-5px);
+        }
+
+        mat-icon {
+          font-size: 2.5rem;
+          height: 2.5rem;
+          width: 2.5rem;
+          color: $primary-color;
+        }
+
+        h4 {
+          margin: 0 0 8px 0;
+          color: $text-primary;
+          font-size: 1.1rem;
+        }
+
+        p {
+          margin: 0;
+          color: $text-secondary;
+          font-size: 1rem;
+        }
+
+        .status {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 8px;
+          font-size: 0.9rem;
+          font-weight: 500;
+
+          &.open {
+            color: $success-color;
+          }
+
+          &.closed {
+            color: $danger-color;
+          }
+
+          &::before {
+            content: '●';
+            font-size: 1.2rem;
+          }
+        }
+
+        .price {
+          font-size: 1.4rem;
+          font-weight: 700;
+          color: $primary-color;
+        }
+
+        .occupancy {
+          @include flex-center;
+          gap: 15px;
+          width: 100%;
+
+          .occupancy-bar {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+
+            .occupancy-fill {
+              height: 100%;
+              border-radius: 4px;
+              transition: width 0.5s ease;
+
+              &.low { background: $success-color; }
+              &.medium { background: $warning-color; }
+              &.high { background: $danger-color; }
+            }
+          }
+
+          span {
+            font-weight: 600;
+            color: $text-primary;
+            min-width: 40px;
+            text-align: right;
+          }
+        }
+      }
+    }
+  }
+
+  .reviews-preview {
+    .section-header {
+      @include flex-between;
+      margin-bottom: 25px;
+
+      h2 {
+        margin: 0;
+        border: none;
+        padding: 0;
+      }
+
+      button {
+        color: $primary-color;
+        font-weight: 500;
+      }
+    }
+
+    .no-reviews {
+      text-align: center;
+      padding: 40px 20px;
+      color: $text-light;
+      font-style: italic;
+    }
+
+    .reviews-list {
+      @include flex-column;
+      gap: 20px;
+    }
+  }
+}
+
+// Cartes d'avis
+.review-card {
+  @include card-style;
+  border-left: 4px solid $primary-color;
+  padding: 20px;
+  margin-bottom: 0;
+
+  .review-header {
+    @include flex-between;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+
+    .reviewer {
+      @include flex-center;
+      gap: 15px;
+
+      .avatar {
+        @include flex-center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: $primary-color;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      .reviewer-info {
+        h4 {
+          margin: 0 0 5px 0;
+          font-size: 1.1rem;
+          color: $text-primary;
+        }
+
+        span {
+          display: block;
+          font-size: 0.9rem;
+          color: $text-light;
+          margin-bottom: 4px;
+        }
+
+        .verified-badge {
+          @include flex-center;
+          gap: 4px;
+          display: inline-flex;
+          background: $success-color;
+          color: white;
+          padding: 3px 10px;
+          border-radius: 12px;
+          font-size: 0.8rem;
+          font-weight: 500;
+
+          mat-icon {
+            font-size: 0.9rem;
+            height: 0.9rem;
+            width: 0.9rem;
+          }
+        }
+      }
+    }
+
+    .review-rating {
+      @include flex-column;
+      align-items: flex-end;
+      gap: 8px;
+
+      .stars {
+        @include flex-center;
+        gap: 2px;
+
+        mat-icon {
+          color: #ffd700;
+          font-size: 1.2rem;
+          height: 1.2rem;
+          width: 1.2rem;
+        }
+      }
+
+      .review-date {
+        font-size: 0.85rem;
+        color: $text-light;
+      }
+    }
+  }
+
+  .review-title {
+    margin: 0 0 10px 0;
+    color: $text-primary;
+    font-size: 1.1rem;
+  }
+
+  .review-comment {
+    margin: 0 0 15px 0;
+    color: $text-secondary;
+    line-height: 1.6;
+    font-size: 1rem;
+  }
+
+  .owner-reply {
+    background: rgba($primary-color, 0.05);
+    border-left: 3px solid $primary-color;
+    padding: 15px;
+    border-radius: 0 $border-radius-sm $border-radius-sm 0;
+    margin: 15px 0;
+
+    .reply-header {
+      @include flex-center;
+      gap: 10px;
+      margin-bottom: 10px;
+
+      mat-icon {
+        color: $primary-color;
+        font-size: 1.1rem;
+      }
+
+      strong {
+        color: $text-primary;
+        font-size: 0.95rem;
+      }
+
+      span {
+        font-size: 0.85rem;
+        color: $text-light;
+        margin-left: auto;
+      }
+    }
+
+    p {
+      margin: 0;
+      color: $text-secondary;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+  }
+
+  .review-actions {
+    @include flex-center;
+    justify-content: flex-start;
+    gap: 15px;
+    padding-top: 15px;
+    border-top: 1px solid $border-color;
+
+    button {
+      @include flex-center;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: $text-secondary;
+
+      mat-icon {
+        font-size: 1.1rem;
+        height: 1.1rem;
+        width: 1.1rem;
+      }
+
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
+}
+
+// Onglet Avis
+.reviews {
+  .reviews-header {
+    @include flex-between;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 30px;
+
+    .rating-summary {
+      @include flex-center;
+      gap: 40px;
+
+      .average-rating {
+        text-align: center;
+        min-width: 120px;
+
+        .rating-number {
+          font-size: 3.5rem;
+          font-weight: 700;
+          color: $text-primary;
+          line-height: 1;
+        }
+
+        .stars {
+          @include flex-center;
+          gap: 2px;
+          margin: 10px 0;
+
+          mat-icon {
+            color: #ffd700;
+            font-size: 1.8rem;
+          }
+        }
+
+        p {
+          margin: 0;
+          color: $text-secondary;
+          font-size: 0.95rem;
+        }
+      }
+
+      .rating-distribution {
+        flex: 1;
+        min-width: 250px;
+
+        .rating-bar {
+          @include flex-center;
+          gap: 15px;
+          margin: 8px 0;
+
+          span {
+            font-size: 0.9rem;
+            color: $text-secondary;
+            min-width: 70px;
+          }
+
+          &:first-child span:first-child {
+            color: $text-primary;
+            font-weight: 500;
+          }
+
+          .bar {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+
+            .fill {
+              height: 100%;
+              background: #ffd700;
+              border-radius: 4px;
+            }
+          }
+        }
+      }
+    }
+
+    button {
+      height: 48px;
+      padding: 0 24px;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .reviews-filters {
+    @include flex-center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+    padding: 15px;
+    background: white;
+    border-radius: $border-radius-sm;
+    box-shadow: $shadow-light;
+
+    button {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+
+      &:hover {
+        background: rgba($primary-color, 0.1);
+      }
+
+      &.mat-button-disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      mat-icon {
+        font-size: 1.1rem;
+        height: 1.1rem;
+        width: 1.1rem;
+        margin-right: 6px;
+      }
+    }
+  }
+
+  .loading-reviews {
+    @include flex-center;
+    padding: 60px;
+
+    mat-spinner {
+      ::ng-deep circle {
+        stroke: $primary-color !important;
+      }
+    }
+  }
+
+  .no-reviews {
+    text-align: center;
+    padding: 60px 20px;
+
+    mat-icon {
+      font-size: 4rem;
+      height: 4rem;
+      width: 4rem;
+      color: $text-light;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      color: $text-primary;
+      margin: 0 0 10px 0;
+      font-size: 1.5rem;
+    }
+
+    p {
+      color: $text-secondary;
+      margin: 0 0 25px 0;
+      font-size: 1.1rem;
+    }
+
+    button {
+      padding: 12px 32px;
+      font-size: 1.1rem;
+
+      mat-icon {
+        font-size: 1.2rem;
+        height: 1.2rem;
+        width: 1.2rem;
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Onglet Localisation
+.location {
+  .location-info {
+    @include flex-column;
+    gap: 25px;
+
+    .address-card {
+      @include flex-center;
+      gap: 20px;
+      padding: 20px;
+      background: rgba($primary-color, 0.05);
+      border-radius: $border-radius;
+
+      mat-icon {
+        font-size: 2.5rem;
+        color: $primary-color;
+        flex-shrink: 0;
+      }
+
+      h4 {
+        margin: 0 0 10px 0;
+        color: $text-primary;
+        font-size: 1.2rem;
+      }
+
+      p {
+        margin: 5px 0;
+        color: $text-secondary;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+    }
+
+    .map-container {
+      height: 300px;
+      border-radius: $border-radius;
+      overflow: hidden;
+      box-shadow: $shadow-medium;
+
+      .map-placeholder {
+        @include flex-center;
+        @include flex-column;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        gap: 15px;
+
+        mat-icon {
+          font-size: 4rem;
+          height: 4rem;
+          width: 4rem;
+        }
+
+        p {
+          margin: 0;
+          font-size: 1.1rem;
+          text-align: center;
+
+          &:last-child {
+            font-size: 0.9rem;
+            opacity: 0.9;
+          }
+        }
+      }
+    }
+
+    .directions {
+      h4 {
+        margin: 0 0 20px 0;
+        color: $text-primary;
+        font-size: 1.3rem;
+      }
+
+      .transport-options {
+        @include responsive-grid(4, 10px);
+
+        @media (max-width: 768px) {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media (max-width: 480px) {
+          grid-template-columns: 1fr;
+        }
+
+        button {
+          @include flex-column;
+          gap: 10px;
+          padding: 20px;
+          background: white;
+          border: 2px solid $border-color;
+          border-radius: $border-radius;
+          transition: all 0.3s ease;
+
+          &:hover {
+            border-color: $primary-color;
+            transform: translateY(-3px);
+            box-shadow: $shadow-light;
+          }
+
+          mat-icon {
+            font-size: 2rem;
+            height: 2rem;
+            width: 2rem;
+            color: $primary-color;
+          }
+
+          span {
+            font-weight: 500;
+            color: $text-primary;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Onglet Informations
+.info {
+  .info-grid {
+    @include responsive-grid(2, 20px);
+    margin-bottom: 30px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+
+    .info-card {
+      @include flex-center;
+      gap: 20px;
+      padding: 20px;
+      background: rgba($primary-color, 0.05);
+      border-radius: $border-radius;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+      }
+
+      mat-icon {
+        font-size: 2.5rem;
+        height: 2.5rem;
+        width: 2.5rem;
+        color: $primary-color;
+        flex-shrink: 0;
+      }
+
+      h4 {
+        margin: 0 0 12px 0;
+        color: $text-primary;
+        font-size: 1.1rem;
+      }
+
+      p {
+        margin: 6px 0;
+        color: $text-secondary;
+        font-size: 0.95rem;
+        line-height: 1.5;
+
+        mat-icon {
+          display: inline-block;
+          vertical-align: middle;
+          font-size: 1rem;
+          height: 1rem;
+          width: 1rem;
+          margin-right: 8px;
+        }
+
+        a {
+          color: $primary-color;
+          text-decoration: none;
+          font-weight: 500;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+
+  .rules-section {
+    padding: 20px;
+    background: rgba($primary-color, 0.05);
+    border-radius: $border-radius;
+
+    h4 {
+      margin: 0 0 15px 0;
+      color: $text-primary;
+      font-size: 1.2rem;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      list-style-type: none;
+
+      li {
+        position: relative;
+        padding-left: 25px;
+        margin-bottom: 10px;
+        color: $text-secondary;
+        font-size: 0.95rem;
+        line-height: 1.6;
+
+        &::before {
+          content: "•";
+          position: absolute;
+          left: 0;
+          color: $primary-color;
+          font-size: 1.2rem;
+        }
+      }
+    }
+  }
+}
+
+// Colonne droite
+.right-column {
+  position: sticky;
+  top: 20px;
+  @include flex-column;
+  gap: 20px;
+
+  @media (max-width: 992px) {
+    position: static;
+  }
+}
+
+// Carte de réservation
+.booking-card {
+  @include card-style;
+  border-top: 4px solid $primary-color;
+
+  .booking-header {
+    margin-bottom: 25px;
+
+    h3 {
+      margin: 0 0 15px 0;
+      color: $text-primary;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .price-display {
+      .price {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: $primary-color;
+        line-height: 1;
+      }
+
+      .per-person {
+        font-size: 0.95rem;
+        color: $text-light;
+        margin-left: 8px;
+      }
+    }
+  }
+
+  .booking-status {
+    @include flex-column;
+    gap: 12px;
+    margin-bottom: 25px;
+
+    .status-item {
+      @include flex-center;
+      gap: 12px;
+      padding: 10px 15px;
+      background: rgba($success-color, 0.1);
+      border-radius: $border-radius-sm;
+      font-weight: 500;
+
+      &.available {
+        background: rgba($success-color, 0.1);
+        color: $success-color;
+      }
+
+      &:not(.available) {
+        background: rgba($danger-color, 0.1);
+        color: $danger-color;
+      }
+
+      mat-icon {
+        font-size: 1.2rem;
+        height: 1.2rem;
+        width: 1.2rem;
+      }
+    }
+  }
+
+  .booking-form {
+    @include flex-column;
+    gap: 20px;
+    margin-bottom: 25px;
+
+    mat-form-field {
+      width: 100%;
+
+      ::ng-deep {
+        .mat-form-field-wrapper {
+          padding-bottom: 0;
+        }
+
+        .mat-form-field-outline {
+          background: white;
+        }
+      }
+    }
+
+    textarea {
+      resize: vertical;
+    }
+  }
+
+  .booking-summary {
+    @include flex-column;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: rgba($primary-color, 0.05);
+    border-radius: $border-radius;
+
+    .summary-item {
+      @include flex-between;
+
+      span:first-child {
+        color: $text-secondary;
+        font-size: 0.95rem;
+      }
+
+      span:last-child {
+        color: $text-primary;
+        font-weight: 500;
+      }
+
+      &.total {
+        margin-top: 10px;
+        padding-top: 15px;
+        border-top: 2px solid $border-color;
+
+        span:first-child {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: $text-primary;
+        }
+
+        span:last-child {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: $primary-color;
+        }
+      }
+    }
+
+    mat-divider {
+      margin: 5px 0;
+    }
+  }
+
+  .book-btn {
+    width: 100%;
+    height: 56px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: $border-radius-sm;
+    margin-bottom: 25px;
+
+    mat-icon {
+      margin-right: 10px;
+      font-size: 1.3rem;
+      height: 1.3rem;
+      width: 1.3rem;
+    }
+  }
+
+  .booking-features {
+    @include flex-column;
+    gap: 15px;
+
+    .feature {
+      @include flex-center;
+      gap: 12px;
+
+      mat-icon {
+        color: $success-color;
+        font-size: 1.1rem;
+        height: 1.1rem;
+        width: 1.1rem;
+        flex-shrink: 0;
+      }
+
+      span {
+        color: $text-secondary;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+// Carte de partage
+.share-card {
+  @include card-style;
+
+  h4 {
+    margin: 0 0 20px 0;
+    color: $text-primary;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .share-buttons {
+    @include flex-center;
+    gap: 15px;
+
+    button {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: $shadow-medium;
+      }
+
+      mat-icon {
+        font-size: 1.5rem;
+        height: 1.5rem;
+        width: 1.5rem;
+      }
+    }
+  }
+}
+
+// Attractions similaires
+.similar-attractions {
+  @include card-style;
+
+  h4 {
+    margin: 0 0 20px 0;
+    color: $text-primary;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .similar-list {
+    text-align: center;
+    padding: 30px 20px;
+    color: $text-light;
+    font-style: italic;
+    background: rgba($primary-color, 0.05);
+    border-radius: $border-radius;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .attraction-hero {
+    height: 350px;
+
+    .hero-content {
+      h1 {
+        font-size: 2.2rem;
+      }
+
+      .hero-subtitle {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+    }
+  }
+
+  .tabs-navigation {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  .highlights-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .transport-options {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .attraction-hero {
+    height: 300px;
+    padding: 15px;
+
+    .hero-content {
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+  }
+
+  .main-content {
+    padding: 0 15px 30px;
+  }
+
+  .reviews-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+
+    .rating-summary {
+      flex-direction: column;
+      gap: 20px !important;
+      width: 100%;
+    }
+  }
+
+  .transport-options {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.attraction-content {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.review-card {
+  animation: fadeIn 0.4s ease-out;
+}
+
+// États interactifs
+button:active {
+  transform: scale(0.98);
+}
+
+// Scrollbar personnalisée
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba($primary-color, 0.5);
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba($primary-color, 0.7);
+  }
+}

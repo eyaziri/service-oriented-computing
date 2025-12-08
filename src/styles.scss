@@ -1,0 +1,156 @@
+/* Import Angular Material theme */
+@import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+  background-color: #f8f9fa;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.p-20 { padding: 20px; }
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.8s ease-in-out;
+}
+// Styles pour les cartes d'attraction
+.attraction-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Styles pour les étoiles de notation
+.rating-stars {
+  display: inline-flex;
+  align-items: center;
+  
+  .star {
+    color: #ffc107;
+    font-size: 20px;
+    margin-right: 2px;
+  }
+  
+  .star-empty {
+    color: #e0e0e0;
+  }
+}
+
+// Styles pour les badges
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 8px;
+  
+  &.badge-success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  &.badge-warning {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  &.badge-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  &.badge-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+  }
+}
+
+// Styles pour les cartes de réservation
+.reservation-card {
+  border-left: 4px solid;
+  
+  &.status-confirmed {
+    border-left-color: #28a745;
+  }
+  
+  &.status-pending {
+    border-left-color: #ffc107;
+  }
+  
+  &.status-cancelled {
+    border-left-color: #dc3545;
+  }
+  
+  &.status-completed {
+    border-left-color: #17a2b8;
+  }
+}
+
+// Animation de chargement
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.8s ease-out;
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-50px); }
+  to { opacity: 1; transform: translateX(0); }
+}

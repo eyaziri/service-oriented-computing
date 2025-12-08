@@ -1,0 +1,135 @@
+<div class="review-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Écrire un avis</h2>
+    <button mat-icon-button class="close-btn" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <!-- Informations de l'attraction -->
+    <div class="attraction-info">
+      <h3>{{ data.attractionName }}</h3>
+      <p class="hint">Partagez votre expérience pour aider d'autres voyageurs</p>
+    </div>
+
+    <!-- Formulaire d'avis -->
+    <form [formGroup]="reviewForm" class="review-form">
+      <!-- Évaluation -->
+      <div class="rating-section">
+        <h4>Votre évaluation</h4>
+        <div class="stars-selector">
+          <button mat-icon-button 
+                  *ngFor="let star of getStarsArray()" 
+                  (click)="setRating(star + 1)"
+                  class="star-button">
+            <mat-icon class="star-icon">
+              {{ star < selectedRating ? 'star' : 'star_border' }}
+            </mat-icon>
+          </button>
+          <span class="rating-text">
+            {{ selectedRating }} {{ selectedRating === 1 ? 'étoile' : 'étoiles' }}
+          </span>
+        </div>
+        <input type="hidden" formControlName="rating">
+        <mat-error *ngIf="reviewForm.get('rating')?.hasError('required')" class="rating-error">
+          La note est requise
+        </mat-error>
+      </div>
+
+      <!-- Titre -->
+      <mat-form-field appearance="outline" class="title-field">
+        <mat-label>Titre de votre avis (optionnel)</mat-label>
+        <input matInput formControlName="title" placeholder="Ex: Une expérience incroyable !" maxlength="200">
+        <mat-hint align="end">{{ reviewForm.get('title')?.value?.length || 0 }}/200</mat-hint>
+      </mat-form-field>
+
+      <!-- Commentaire -->
+      <div class="comment-section">
+        <h4>Votre expérience *</h4>
+        <mat-form-field appearance="outline" class="comment-field">
+          <textarea matInput 
+                    formControlName="comment" 
+                    placeholder="Décrivez votre visite en détails..."
+                    rows="6"
+                    maxlength="2000"></textarea>
+          <mat-hint align="end" [ngClass]="characterCountClass">
+            {{ characterCount }}/{{ characterLimit }}
+          </mat-hint>
+        </mat-form-field>
+        <mat-error *ngIf="reviewForm.get('comment')?.hasError('required')">
+          Le commentaire est requis
+        </mat-error>
+        <mat-error *ngIf="reviewForm.get('comment')?.hasError('minlength')">
+          Minimum 10 caractères
+        </mat-error>
+      </div>
+
+      <!-- Informations supplémentaires -->
+      <div class="additional-info">
+        <h4>Informations supplémentaires</h4>
+        
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Date de votre visite (optionnel)</mat-label>
+          <input matInput [matDatepicker]="visitPicker" formControlName="visitDate" [max]="maxDate">
+          <mat-datepicker-toggle matSuffix [for]="visitPicker"></mat-datepicker-toggle>
+          <mat-datepicker #visitPicker></mat-datepicker>
+        </mat-form-field>
+
+        <div class="verified-checkbox" *ngIf="data.reservationId">
+          <mat-checkbox formControlName="isVerifiedVisit" color="primary">
+            <div class="checkbox-label">
+              <mat-icon class="verified-icon">verified</mat-icon>
+              <span>Marquer comme visite vérifiée</span>
+              <span class="hint">Votre réservation confirme que vous avez visité cet endroit</span>
+            </div>
+          </mat-checkbox>
+        </div>
+
+        <div class="tips-box">
+          <mat-icon>lightbulb</mat-icon>
+          <div class="tips-content">
+            <strong>Conseils pour un bon avis :</strong>
+            <ul>
+              <li>Décrivez ce qui vous a plu ou déplu</li>
+              <li>Parlez de l'accueil, du service, des installations</li>
+              <li>Mentionnez si ça vaut le prix</li>
+              <li>Restez objectif et respectueux</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations personnelles (pré-remplies) -->
+      <div class="personal-info">
+        <p>
+          <mat-icon>person</mat-icon>
+          Publié par : {{ reviewForm.get('touristName')?.value }}
+          <span *ngIf="reviewForm.get('touristCountry')?.value">
+            ({{ reviewForm.get('touristCountry')?.value }})
+          </span>
+        </p>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
+      Annuler
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()"
+            [disabled]="isSubmitting || !reviewForm.valid"
+            class="submit-btn">
+      <div class="button-content">
+        <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+        <span *ngIf="!isSubmitting">
+          <mat-icon>rate_review</mat-icon>
+          Publier l'avis
+        </span>
+        <span *ngIf="isSubmitting">Publication en cours...</span>
+      </div>
+    </button>
+  </mat-dialog-actions>
+</div>

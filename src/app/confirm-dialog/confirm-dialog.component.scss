@@ -1,0 +1,115 @@
+.confirm-dialog {
+  min-width: 350px;
+  max-width: 500px;
+  
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px 0;
+    margin-bottom: 16px;
+    
+    &.header-primary {
+      .header-icon {
+        color: #2196f3;
+      }
+      .dialog-title {
+        color: #2196f3;
+      }
+    }
+    
+    &.header-accent {
+      .header-icon {
+        color: #ff9800;
+      }
+      .dialog-title {
+        color: #ff9800;
+      }
+    }
+    
+    &.header-warn {
+      .header-icon {
+        color: #f44336;
+      }
+      .dialog-title {
+        color: #f44336;
+      }
+    }
+    
+    .header-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+    
+    .dialog-title {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 500;
+    }
+  }
+  
+  .dialog-content {
+    padding: 0 24px;
+    
+    .message-container {
+      margin-bottom: 24px;
+      
+      .dialog-message {
+        margin: 0;
+        color: #666;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+    }
+    
+    .input-container {
+      margin-top: 16px;
+      
+      .full-width {
+        width: 100%;
+      }
+    }
+  }
+  
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px;
+    margin: 0;
+    
+    .cancel-button {
+      min-width: 100px;
+    }
+    
+    .confirm-button {
+      min-width: 100px;
+    }
+  }
+}
+
+// Mobile responsiveness
+@media (max-width: 600px) {
+  .confirm-dialog {
+    min-width: auto;
+    max-width: 100%;
+    
+    .dialog-header {
+      padding: 16px 20px 0;
+    }
+    
+    .dialog-content {
+      padding: 0 20px;
+    }
+    
+    .dialog-actions {
+      padding: 16px 20px;
+      flex-direction: column;
+      
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

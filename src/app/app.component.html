@@ -1,0 +1,32 @@
+<mat-toolbar color="primary" class="main-toolbar">
+  <div class="toolbar-content">
+    <div class="logo-section" routerLink="/" style="cursor: pointer;">
+      <mat-icon class="logo-icon">travel_explore</mat-icon>
+      <span class="logo-text">Smart Tourism</span>
+    </div>
+    
+    <div class="nav-links">
+      <button mat-button routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        Accueil
+      </button>
+      <button mat-button routerLink="/attractions" routerLinkActive="active">
+        Attractions
+      </button>
+      <button mat-button>À propos</button>
+      <button mat-button>Contact</button>
+    </div>
+  </div>
+</mat-toolbar>
+
+<router-outlet></router-outlet>
+
+<footer class="footer">
+  <div class="footer-content">
+    <p>© 2024 Smart Tourism. Tous droits réservés.</p>
+    <div class="footer-links">
+      <a href="#">Confidentialité</a>
+      <a href="#">Conditions</a>
+      <a href="#">FAQ</a>
+    </div>
+  </div>
+</footer>

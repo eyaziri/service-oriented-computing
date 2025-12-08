@@ -1,0 +1,181 @@
+<div class="reservation-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Réserver votre visite</h2>
+    <button mat-icon-button class="close-btn" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <!-- Informations de l'attraction -->
+    <div class="attraction-info">
+      <div class="attraction-header">
+        <h3>{{ data.attraction?.name }}</h3>
+        <div class="category-badge">
+          {{ apiService.getCategoryDisplay(data.attraction?.category) }}
+        </div>
+      </div>
+      <p class="attraction-location">
+        <mat-icon>location_on</mat-icon>
+        {{ data.attraction?.location?.city }}, {{ data.attraction?.location?.country }}
+      </p>
+    </div>
+
+    <!-- Formulaire de réservation -->
+    <form [formGroup]="reservationForm" class="reservation-form">
+      <div class="form-section">
+        <h4>Informations de visite</h4>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Date de visite</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="visitDate" [min]="minDate" [max]="maxDate">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="reservationForm.get('visitDate')?.hasError('required')">
+              La date est requise
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Heure de visite</mat-label>
+            <mat-select formControlName="visitTime">
+              <mat-option *ngFor="let slot of timeSlots" [value]="slot.value">
+                <mat-icon>{{ slot.icon }}</mat-icon>
+                {{ slot.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre de personnes</mat-label>
+          <mat-select formControlName="numberOfPeople">
+            <mat-option *ngFor="let num of peopleOptions" [value]="num">
+              {{ num }} personne{{ num > 1 ? 's' : '' }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="reservationForm.get('numberOfPeople')?.hasError('required')">
+            Le nombre de personnes est requis
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-section">
+        <h4>Informations personnelles</h4>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>Nom complet</mat-label>
+          <input matInput formControlName="touristName" placeholder="Votre nom et prénom">
+          <mat-error *ngIf="reservationForm.get('touristName')?.hasError('required')">
+            Le nom est requis
+          </mat-error>
+          <mat-error *ngIf="reservationForm.get('touristName')?.hasError('minlength')">
+            Minimum 2 caractères
+          </mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="touristEmail" placeholder="votre@email.com" type="email">
+            <mat-error *ngIf="reservationForm.get('touristEmail')?.hasError('required')">
+              L'email est requis
+            </mat-error>
+            <mat-error *ngIf="reservationForm.get('touristEmail')?.hasError('email')">
+              Email invalide
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Téléphone</mat-label>
+            <input matInput formControlName="touristPhone" placeholder="0612345678">
+            <mat-error *ngIf="reservationForm.get('touristPhone')?.hasError('pattern')">
+              Numéro invalide (10 chiffres)
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Pays</mat-label>
+          <input matInput formControlName="touristCountry" placeholder="Votre pays">
+        </mat-form-field>
+      </div>
+
+      <div class="form-section">
+        <h4>Exigences particulières</h4>
+        <mat-form-field appearance="outline">
+          <mat-label>Commentaires ou exigences spéciales</mat-label>
+          <textarea matInput formControlName="specialRequirements" 
+                    placeholder="Accessibilité, allergies, autres besoins..."
+                    rows="3"></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- Récapitulatif du prix -->
+      <div class="price-summary">
+        <div class="summary-header">
+          <h4>Récapitulatif</h4>
+          <div class="total-price">
+            <span class="amount">{{ totalPrice }} €</span>
+            <span class="label">Total</span>
+          </div>
+        </div>
+        
+        <div class="summary-details">
+          <div class="summary-item">
+            <span>{{ pricePerPerson }} € × {{ reservationForm.get('numberOfPeople')?.value || 1 }} personne(s)</span>
+            <span>{{ totalPrice }} €</span>
+          </div>
+          
+          <div class="summary-item taxes">
+            <span>Taxes et frais inclus</span>
+            <span>0 €</span>
+          </div>
+          
+          <mat-divider></mat-divider>
+          
+          <div class="summary-item total">
+            <strong>Total à payer</strong>
+            <strong>{{ totalPrice }} €</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conditions et informations -->
+      <div class="terms-info">
+        <mat-checkbox [checked]="true" color="primary">
+          J'accepte les conditions générales de réservation
+        </mat-checkbox>
+        
+        <div class="info-box">
+          <mat-icon>info</mat-icon>
+          <div>
+            <p><strong>Politique d'annulation :</strong> Annulation gratuite jusqu'à 24h avant la visite.</p>
+            <p><strong>Confirmation :</strong> Vous recevrez un email de confirmation avec votre QR code.</p>
+          </div>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
+      Annuler
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()"
+            [disabled]="isSubmitting || !reservationForm.valid"
+            class="submit-btn">
+      <div class="button-content">
+        <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+        <span *ngIf="!isSubmitting">
+          <mat-icon>book_online</mat-icon>
+          Confirmer la réservation
+        </span>
+        <span *ngIf="isSubmitting">Traitement en cours...</span>
+      </div>
+    </button>
+  </mat-dialog-actions>
+</div>

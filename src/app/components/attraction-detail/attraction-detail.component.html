@@ -1,0 +1,481 @@
+<div class="attraction-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <mat-spinner diameter="60"></mat-spinner>
+    <p>Chargement des détails...</p>
+  </div>
+
+  <!-- Attraction Detail -->
+  <div *ngIf="!isLoading && attraction" class="attraction-content">
+    <!-- Hero Section -->
+    <div class="attraction-hero">
+      <div class="hero-image" [style.backgroundImage]="'url(' + (attraction.imageUrl || 'assets/default-attraction.jpg') + ')'">
+        <div class="hero-overlay">
+          <button mat-icon-button class="back-button" (click)="router.navigate(['/attractions'])">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          
+          <div class="hero-content">
+            <div class="category-badge">
+              {{ getCategoryDisplay(attraction.category) }}
+            </div>
+            <h1>{{ attraction.name }}</h1>
+            <div class="hero-subtitle">
+              <div class="location">
+                <mat-icon>location_on</mat-icon>
+                <span>{{ attraction.location?.fullAddress || attraction.location?.city }}, {{ attraction.location?.country }}</span>
+              </div>
+              <div class="hero-rating">
+                <div class="stars">
+                  <mat-icon *ngFor="let star of getStarsArray(attraction.rating)">
+                    {{ star === 1 ? 'star' : 'star_border' }}
+                  </mat-icon>
+                </div>
+                <span class="rating-value">{{ attraction.rating.toFixed(1) }}</span>
+                <span class="reviews-count">({{ attraction.totalReviews }} avis)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Left Column -->
+      <div class="left-column">
+        <!-- Navigation Tabs -->
+        <div class="tabs-navigation">
+          <button mat-button [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
+            <mat-icon>info</mat-icon>
+            Aperçu
+          </button>
+          <button mat-button [class.active]="activeTab === 'reviews'" (click)="setActiveTab('reviews')">
+            <mat-icon>rate_review</mat-icon>
+            Avis ({{ attraction.totalReviews }})
+          </button>
+          <button mat-button [class.active]="activeTab === 'location'" (click)="setActiveTab('location')">
+            <mat-icon>map</mat-icon>
+            Localisation
+          </button>
+          <button mat-button [class.active]="activeTab === 'info'" (click)="setActiveTab('info')">
+            <mat-icon>description</mat-icon>
+            Informations
+          </button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div *ngIf="activeTab === 'overview'" class="tab-content overview">
+          <div class="description-section">
+            <h2>Description</h2>
+            <p class="description">{{ attraction.description }}</p>
+          </div>
+
+          <div class="highlights-section">
+            <h2>Points forts</h2>
+            <div class="highlights-grid">
+              <div class="highlight">
+                <mat-icon>schedule</mat-icon>
+                <div>
+                  <h4>Horaires</h4>
+                  <p>{{ getOpeningHours() }}</p>
+                  <span class="status" [class.open]="attraction.isOpen" [class.closed]="!attraction.isOpen">
+                    {{ attraction.isOpen ? '● Ouvert maintenant' : '● Fermé' }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="highlight">
+                <mat-icon>euro</mat-icon>
+                <div>
+                  <h4>Prix d'entrée</h4>
+                  <p class="price">{{ attraction.entryPrice !== null ? attraction.entryPrice + '€' : 'Gratuit' }}</p>
+                </div>
+              </div>
+              
+              <div class="highlight">
+                <mat-icon>timer</mat-icon>
+                <div>
+                  <h4>Durée moyenne</h4>
+                  <p>{{ attraction.averageVisitDuration ? attraction.averageVisitDuration + ' minutes' : 'Non spécifiée' }}</p>
+                </div>
+              </div>
+              
+              <div class="highlight">
+                <mat-icon>people</mat-icon>
+                <div>
+                  <h4>Affluence</h4>
+                  <div class="occupancy">
+                    <div class="occupancy-bar">
+                      <div class="occupancy-fill" [style.width.%]="attraction.occupancyRate" 
+                           [class]="getOccupancyClass()"></div>
+                    </div>
+                    <span>{{ attraction.occupancyRate?.toFixed(0) || 0 }}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Reviews Preview -->
+          <div class="reviews-preview">
+            <div class="section-header">
+              <h2>Avis récents</h2>
+              <button mat-button (click)="setActiveTab('reviews')">Voir tous</button>
+            </div>
+            
+            <div *ngIf="reviews.length === 0" class="no-reviews">
+              <p>Soyez le premier à laisser un avis !</p>
+            </div>
+            
+            <div *ngIf="reviews.length > 0" class="reviews-list">
+              <div *ngFor="let review of reviews.slice(0, 3)" class="review-card">
+                <div class="review-header">
+                  <div class="reviewer">
+                    <div class="avatar">{{ review.touristName.charAt(0) }}</div>
+                    <div class="reviewer-info">
+                      <h4>{{ review.touristName }}</h4>
+                      <span *ngIf="review.touristCountry">{{ review.touristCountry }}</span>
+                      <span *ngIf="review.isVerifiedVisit" class="verified-badge">
+                        <mat-icon>verified</mat-icon>
+                        Visite vérifiée
+                      </span>
+                    </div>
+                  </div>
+                  <div class="review-rating">
+                    <div class="stars">
+                      <mat-icon *ngFor="let star of getStarsArray(review.rating)">
+                        {{ star === 1 ? 'star' : 'star_border' }}
+                      </mat-icon>
+                    </div>
+                    <span class="review-date">{{ review.reviewDate | date: 'dd/MM/yyyy' }}</span>
+                  </div>
+                </div>
+                
+                <h4 *ngIf="review.title" class="review-title">{{ review.title }}</h4>
+                <p class="review-comment">{{ review.comment | slice:0:150 }}{{ review.comment.length > 150 ? '...' : '' }}</p>
+                
+                <div class="review-actions">
+                  <button mat-button (click)="markReviewAsHelpful(review.id)">
+                    <mat-icon>thumb_up</mat-icon>
+                    Utile ({{ review.helpfulCount }})
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reviews Tab -->
+        <div *ngIf="activeTab === 'reviews'" class="tab-content reviews">
+          <div class="reviews-header">
+            <div class="rating-summary">
+              <div class="average-rating">
+                <div class="rating-number">{{ attraction.rating.toFixed(1) }}</div>
+                <div class="stars">
+                  <mat-icon *ngFor="let star of getStarsArray(attraction.rating)">
+                    {{ star === 1 ? 'star' : 'star_border' }}
+                  </mat-icon>
+                </div>
+                <p>{{ attraction.totalReviews }} avis</p>
+              </div>
+              
+              <div class="rating-distribution">
+                <div *ngFor="let star of [5,4,3,2,1]" class="rating-bar">
+                  <span>{{ star }} étoiles</span>
+                  <div class="bar">
+                    <div class="fill" [style.width.%]="0"></div> <!-- À calculer -->
+                  </div>
+                  <span>0%</span> <!-- À calculer -->
+                </div>
+              </div>
+            </div>
+            
+            <button mat-raised-button color="primary" (click)="openReviewDialog()">
+              <mat-icon>rate_review</mat-icon>
+              Écrire un avis
+            </button>
+          </div>
+
+          <div class="reviews-filters">
+            <button mat-button>Tous</button>
+            <button mat-button>5 étoiles</button>
+            <button mat-button>4 étoiles</button>
+            <button mat-button>3 étoiles</button>
+            <button mat-button>2 étoiles</button>
+            <button mat-button>1 étoile</button>
+            <button mat-button>
+              <mat-icon>verified</mat-icon>
+              Visites vérifiées
+            </button>
+          </div>
+
+          <div *ngIf="isReviewsLoading" class="loading-reviews">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+
+          <div *ngIf="!isReviewsLoading && reviews.length === 0" class="no-reviews">
+            <mat-icon>rate_review</mat-icon>
+            <h3>Aucun avis pour le moment</h3>
+            <p>Soyez le premier à partager votre expérience !</p>
+            <button mat-raised-button color="primary" (click)="openReviewDialog()">
+              Écrire un avis
+            </button>
+          </div>
+
+          <div *ngIf="!isReviewsLoading && reviews.length > 0" class="reviews-list">
+            <div *ngFor="let review of reviews" class="review-card">
+              <div class="review-header">
+                <div class="reviewer">
+                  <div class="avatar">{{ review.touristName.charAt(0) }}</div>
+                  <div class="reviewer-info">
+                    <h4>{{ review.touristName }}</h4>
+                    <span *ngIf="review.touristCountry">{{ review.touristCountry }}</span>
+                    <span *ngIf="review.visitDate">Visité le {{ review.visitDate | date: 'dd/MM/yyyy' }}</span>
+                    <span *ngIf="review.isVerifiedVisit" class="verified-badge">
+                      <mat-icon>verified</mat-icon>
+                      Visite vérifiée
+                    </span>
+                  </div>
+                </div>
+                <div class="review-rating">
+                  <div class="stars">
+                    <mat-icon *ngFor="let star of getStarsArray(review.rating)">
+                      {{ star === 1 ? 'star' : 'star_border' }}
+                    </mat-icon>
+                  </div>
+                  <span class="review-date">{{ review.reviewDate | date: 'dd/MM/yyyy' }}</span>
+                </div>
+              </div>
+              
+              <h4 *ngIf="review.title" class="review-title">{{ review.title }}</h4>
+              <p class="review-comment">{{ review.comment }}</p>
+              
+              <div *ngIf="review.reply" class="owner-reply">
+                <div class="reply-header">
+                  <mat-icon>reply</mat-icon>
+                  <strong>Réponse du propriétaire</strong>
+                  <span>{{ review.repliedAt | date: 'dd/MM/yyyy' }}</span>
+                </div>
+                <p>{{ review.reply }}</p>
+              </div>
+              
+              <div class="review-actions">
+                <button mat-button (click)="markReviewAsHelpful(review.id)">
+                  <mat-icon>thumb_up</mat-icon>
+                  Utile ({{ review.helpfulCount }})
+                </button>
+                <button mat-button>
+                  <mat-icon>flag</mat-icon>
+                  Signaler
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Tab -->
+        <div *ngIf="activeTab === 'location'" class="tab-content location">
+          <h2>Localisation</h2>
+          
+          <div class="location-info">
+            <div class="address-card">
+              <mat-icon>place</mat-icon>
+              <div>
+                <h4>Adresse</h4>
+                <p>{{ attraction.location?.fullAddress || attraction.location?.address }}</p>
+                <p>{{ attraction.location?.postalCode }} {{ attraction.location?.city }}</p>
+                <p>{{ attraction.location?.country }}</p>
+              </div>
+            </div>
+            
+            <div class="map-container">
+              <!-- Ici vous pouvez intégrer Google Maps ou OpenStreetMap -->
+              <div class="map-placeholder">
+                <mat-icon>map</mat-icon>
+                <p>Carte interactive</p>
+                <p>Coordonnées: {{ attraction.location?.latitude }}, {{ attraction.location?.longitude }}</p>
+              </div>
+            </div>
+            
+            <div class="directions">
+              <h4>Comment s'y rendre</h4>
+              <div class="transport-options">
+                <button mat-button>
+                  <mat-icon>directions_car</mat-icon>
+                  En voiture
+                </button>
+                <button mat-button>
+                  <mat-icon>directions_transit</mat-icon>
+                  Transports en commun
+                </button>
+                <button mat-button>
+                  <mat-icon>directions_walk</mat-icon>
+                  À pied
+                </button>
+                <button mat-button>
+                  <mat-icon>directions_bike</mat-icon>
+                  À vélo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Tab -->
+        <div *ngIf="activeTab === 'info'" class="tab-content info">
+          <h2>Informations pratiques</h2>
+          
+          <div class="info-grid">
+            <div class="info-card">
+              <mat-icon>access_time</mat-icon>
+              <div>
+                <h4>Horaires d'ouverture</h4>
+                <p>{{ getOpeningHours() }}</p>
+                <p *ngIf="attraction.maxCapacity">Dernière entrée: {{ attraction.closingTime }}</p>
+              </div>
+            </div>
+            
+            <div class="info-card">
+              <mat-icon>euro</mat-icon>
+              <div>
+                <h4>Tarifs</h4>
+                <p>Adulte: {{ attraction.entryPrice !== null ? attraction.entryPrice + '€' : 'Gratuit' }}</p>
+                <p *ngIf="attraction.entryPrice">Enfant: {{ (attraction.entryPrice * 0.6).toFixed(0) }}€</p>
+                <p *ngIf="attraction.entryPrice">Étudiant: {{ (attraction.entryPrice * 0.8).toFixed(0) }}€</p>
+              </div>
+            </div>
+            
+            <div class="info-card">
+              <mat-icon>people</mat-icon>
+              <div>
+                <h4>Capacité</h4>
+                <p>Maximum: {{ attraction.maxCapacity || 'Illimitée' }} personnes</p>
+                <p>Actuellement: {{ attraction.currentVisitors }} personnes</p>
+                <p>Disponible: {{ attraction.availableSpots !== undefined ? attraction.availableSpots + ' places' : '--' }}</p>
+              </div>
+            </div>
+            
+            <div class="info-card">
+              <mat-icon>contact_support</mat-icon>
+              <div>
+                <h4>Contact</h4>
+                <p *ngIf="attraction.phoneNumber">
+                  <mat-icon>phone</mat-icon>
+                  {{ attraction.phoneNumber }}
+                </p>
+                <p *ngIf="attraction.email">
+                  <mat-icon>email</mat-icon>
+                  {{ attraction.email }}
+                </p>
+                <p *ngIf="attraction.websiteUrl">
+                  <mat-icon>public</mat-icon>
+                  <a [href]="attraction.websiteUrl" target="_blank">Site web</a>
+                </p>
+              </div>
+            </div>
+            
+            <div class="info-card">
+              <mat-icon>accessibility</mat-icon>
+              <div>
+                <h4>Accessibilité</h4>
+                <p>Accès handicapé: Oui</p>
+                <p>Parking: Disponible</p>
+                <p>Toilettes: Oui</p>
+              </div>
+            </div>
+            
+            <div class="info-card">
+              <mat-icon>local_dining</mat-icon>
+              <div>
+                <h4>Services</h4>
+                <p>Boutique souvenir: Oui</p>
+                <p>Restauration: À proximité</p>
+                <p>Audio-guide: Disponible</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="rules-section">
+            <h4>Règles et consignes</h4>
+            <ul>
+              <li>Interdiction de fumer à l'intérieur</li>
+              <li>Photographie autorisée sans flash</li>
+              <li>Animaux non admis (sauf chiens guides)</li>
+              <li>Réservation recommandée en haute saison</li>
+              <li>Présenter un justificatif pour les tarifs réduits</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column (Booking Sidebar) -->
+      <!-- Right Column (Booking Sidebar) -->
+<div class="right-column">
+  <div class="booking-card">
+    <div class="booking-header">
+      <h3>Réserver votre visite</h3>
+      <div class="price-display">
+        <span class="price">{{ attraction.entryPrice !== null ? attraction.entryPrice + '€' : 'Gratuit' }}</span>
+        <span class="per-person">par personne</span>
+      </div>
+    </div>
+    
+    <div class="booking-status">
+      <div class="status-item" [class.available]="attraction.isOpen">
+        <mat-icon>{{ attraction.isOpen ? 'check_circle' : 'cancel' }}</mat-icon>
+        <span>{{ attraction.isOpen ? 'Ouvert maintenant' : 'Fermé' }}</span>
+      </div>
+      
+      <div class="status-item" *ngIf="attraction.availableSpots !== undefined">
+        <mat-icon>event_available</mat-icon>
+        <span>{{ attraction.availableSpots }} places disponibles</span>
+      </div>
+    </div>
+    
+    <button mat-raised-button color="primary" class="book-btn" (click)="openReservationDialog()">
+      <mat-icon>book_online</mat-icon>
+      Réserver maintenant
+    </button>
+    
+    <div class="booking-features">
+      <div class="feature">
+        <mat-icon>cancel</mat-icon>
+        <span>Annulation gratuite jusqu'à 24h avant</span>
+      </div>
+      <div class="feature">
+        <mat-icon>verified</mat-icon>
+        <span>Paiement sécurisé</span>
+      </div>
+      <div class="feature">
+        <mat-icon>support_agent</mat-icon>
+        <span>Assistance 24h/24</span>
+      </div>
+    </div>
+  </div>
+  
+  
+        
+        <div class="share-card">
+          <h4>Partager cette attraction</h4>
+          <div class="share-buttons">
+            <button mat-icon-button color="primary">
+              <mat-icon>facebook</mat-icon>
+            </button>
+            <button mat-icon-button color="primary">
+              <mat-icon>twitter</mat-icon>
+            </button>
+            <button mat-icon-button color="primary">
+              <mat-icon>share</mat-icon>
+            </button>
+            <button mat-icon-button (click)="shareAttraction()">
+              <mat-icon>link</mat-icon>
+            </button>
+          </div>
+        </div>
+        
+        
+      </div>
+    </div>
+  </div>
+</div>

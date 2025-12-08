@@ -1,0 +1,154 @@
+<div class="home-container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Découvrez la Magie du Tourisme Intelligent</h1>
+      <p class="hero-subtitle">
+        Explorez des destinations uniques, trouvez des attractions incroyables 
+        et planifiez votre voyage parfait avec notre technologie innovante.
+      </p>
+      <div class="hero-actions">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          class="cta-button"
+          routerLink="/attractions"
+          (click)="scrollToSearch()">
+          <mat-icon>search</mat-icon>
+          Explorer les Attractions
+        </button>
+        <!-- Dans home.component.html, dans la section Hero ou Header -->
+        <div class="admin-access" >
+          <button 
+            mat-raised-button 
+            color="accent" 
+            routerLink="/admin/attractions"
+            class="admin-button">
+            <mat-icon>admin_panel_settings</mat-icon>
+            Administration
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="hero-image">
+  <div class="image-container">
+    <div class="image-wrapper">
+      <img src="../../../assets/image.png" alt="Destination touristique">
+      <div class="image-overlay"></div>
+      <div class="floating-badge">
+        <mat-icon>star</mat-icon>
+        <span>Top Destination 2024</span>
+      </div>
+    </div>
+    <p class="image-caption">Destination de rêve</p>
+  </div>
+</div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <h2 class="section-title">Pourquoi Choisir Smart Tourism?</h2>
+    <div class="features-grid">
+      <mat-card class="feature-card">
+        <mat-card-header>
+          <div mat-card-avatar class="feature-icon ai-icon">
+            <mat-icon>psychology</mat-icon>
+          </div>
+          <mat-card-title>IA Intelligente</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Recommandations personnalisées grâce à notre intelligence artificielle avancée.</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="feature-card">
+        <mat-card-header>
+          <div mat-card-avatar class="feature-icon map-icon">
+            <mat-icon>map</mat-icon>
+          </div>
+          <mat-card-title>Navigation Avancée</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Itinéraires optimisés et navigation en temps réel pour une exploration sans stress.</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="feature-card">
+        <mat-card-header>
+          <div mat-card-avatar class="feature-icon eco-icon">
+            <mat-icon>eco</mat-icon>
+          </div>
+          <mat-card-title>Tourisme Durable</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Promouvoir un tourisme responsable et respectueux de l'environnement.</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+
+  <!-- Search Section -->
+  <section class="search-section" #searchSection>
+    <div class="search-container">
+      <h2 class="section-title">Trouvez Votre Prochaine Aventure</h2>
+      <p class="section-subtitle">
+        Recherchez parmi des milliers d'attractions, activités et destinations
+      </p>
+      
+      <div class="search-box">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Que souhaitez-vous explorer?</mat-label>
+          <input matInput placeholder="Ex: Musées, Plages, Randonnée...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+        
+        <div class="search-filters">
+          <mat-form-field appearance="outline">
+            <mat-label>Type</mat-label>
+            <mat-select>
+              <mat-option value="all">Tous</mat-option>
+              <mat-option value="cultural">Culturel</mat-option>
+              <mat-option value="nature">Nature</mat-option>
+              <mat-option value="adventure">Aventure</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>Localisation</mat-label>
+            <input matInput placeholder="Ville ou région">
+          </mat-form-field>
+          
+          <button mat-raised-button color="accent" class="search-button">
+            <mat-icon>travel_explore</mat-icon>
+            Rechercher
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number">500+</div>
+        <div class="stat-label">Destinations</div>
+      </div>
+      <mat-divider vertical></mat-divider>
+      <div class="stat-item">
+        <div class="stat-number">10K+</div>
+        <div class="stat-label">Attractions</div>
+      </div>
+      <mat-divider vertical></mat-divider>
+      <div class="stat-item">
+        <div class="stat-number">50K+</div>
+        <div class="stat-label">Touristes Satisfaits</div>
+      </div>
+      <mat-divider vertical></mat-divider>
+      <div class="stat-item">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">Support</div>
+      </div>
+    </div>
+  </section>
+</div>

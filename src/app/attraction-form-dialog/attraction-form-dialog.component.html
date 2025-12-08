@@ -1,0 +1,373 @@
+<div class="attraction-form-dialog">
+  <!-- Dialog Header -->
+  <div class="dialog-header">
+    <h2 mat-dialog-title class="dialog-title">
+      <mat-icon class="title-icon">
+        {{ data.mode === 'create' ? 'add_location' : 'edit_location' }}
+      </mat-icon>
+      {{ data.mode === 'create' ? 'Nouvelle Attraction' : 'Modifier l\'Attraction' }}
+    </h2>
+    
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="attractionForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content class="dialog-content">
+      <mat-stepper linear #stepper>
+        
+        <!-- Step 1: Basic Information -->
+        <mat-step label="Informations de base">
+          <div class="step-content">
+            <h3 class="step-title">Informations principales</h3>
+            
+            <!-- Name -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nom de l'attraction *</mat-label>
+              <input matInput formControlName="name" placeholder="Ex: Musée du Louvre">
+              <mat-icon matSuffix>location_on</mat-icon>
+              <mat-error *ngIf="attractionForm.get('name')?.hasError('required')">
+                Le nom est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Category -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Catégorie *</mat-label>
+              <mat-select formControlName="category" required>
+                <mat-option value="">Sélectionnez une catégorie</mat-option>
+                <mat-option *ngFor="let cat of categories" [value]="cat">
+                  {{ getCategoryDisplay(cat) }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="attractionForm.get('category')?.hasError('required')">
+                La catégorie est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Description -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea 
+                matInput 
+                formControlName="description" 
+                rows="4"
+                placeholder="Décrivez l'attraction..."></textarea>
+            </mat-form-field>
+
+            <!-- Image URL -->
+            <div class="image-section">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>URL de l'image</mat-label>
+                <input 
+                  matInput 
+                  formControlName="imageUrl" 
+                  placeholder="https://example.com/image.jpg"
+                  (change)="onImageUrlChange()">
+                <mat-icon matSuffix>image</mat-icon>
+                <mat-error *ngIf="attractionForm.get('imageUrl')?.hasError('pattern')">
+                  URL invalide (doit commencer par http:// ou https://)
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Image Preview -->
+              <div *ngIf="imagePreview" class="image-preview">
+                <img [src]="imagePreview" alt="Preview" (error)="imagePreview = null">
+                <button 
+                  mat-icon-button 
+                  color="warn" 
+                  class="remove-image"
+                  (click)="imagePreview = null; attractionForm.get('imageUrl')?.setValue('')">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Next button -->
+            <div class="step-actions">
+              <button 
+                mat-raised-button 
+                color="primary" 
+                (click)="goToNextStep(stepper, 1)"
+                [disabled]="!attractionForm.get('name')?.valid || !attractionForm.get('category')?.valid">
+                Suivant
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-step>
+
+        <!-- Step 2: Location -->
+        <mat-step label="Localisation">
+          <div class="step-content">
+            <h3 class="step-title">Informations de localisation</h3>
+            
+            <!-- City à la racine (pour le JSON) -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Ville *</mat-label>
+              <input 
+                matInput 
+                formControlName="city" 
+                placeholder="Ex: Tunis"
+                (blur)="onCityChange($event)">
+              <mat-icon matSuffix>location_city</mat-icon>
+              <mat-error *ngIf="attractionForm.get('city')?.hasError('required')">
+                La ville est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Location group -->
+            <div formGroupName="location">
+              <!-- Country -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Pays *</mat-label>
+                <input matInput formControlName="country" placeholder="Ex: Tunisie">
+                <mat-icon matSuffix>flag</mat-icon>
+                <mat-error *ngIf="attractionForm.get('location.country')?.hasError('required')">
+                  Le pays est obligatoire
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Address -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Adresse</mat-label>
+                <input matInput formControlName="address" placeholder="Ex: P7, Tunis 2000">
+                <mat-icon matSuffix>location_on</mat-icon>
+              </mat-form-field>
+
+              <!-- Postal Code -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Code postal</mat-label>
+                <input matInput formControlName="postalCode" placeholder="Ex: 2000">
+              </mat-form-field>
+
+              <!-- Coordinates -->
+              <div class="coordinates-row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Latitude</mat-label>
+                  <input 
+                    matInput 
+                    formControlName="latitude" 
+                    type="number"
+                    step="0.000001"
+                    placeholder="Ex: 36.8093">
+                  <mat-icon matSuffix>explore</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Longitude</mat-label>
+                  <input 
+                    matInput 
+                    formControlName="longitude" 
+                    type="number"
+                    step="0.000001"
+                    placeholder="Ex: 10.1341">
+                  <mat-icon matSuffix>explore</mat-icon>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="step-actions">
+              <button mat-stroked-button (click)="stepper.previous()">
+                <mat-icon>arrow_back</mat-icon>
+                Précédent
+              </button>
+              <button 
+                mat-raised-button 
+                color="primary" 
+                (click)="goToNextStep(stepper, 2)"
+                [disabled]="!attractionForm.get('city')?.valid || 
+                           !attractionForm.get('location.country')?.valid">
+                Suivant
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-step>
+
+        <!-- Step 3: Details & Schedule -->
+        <mat-step label="Détails & Horaires">
+          <div class="step-content">
+            <h3 class="step-title">Détails et horaires d'ouverture</h3>
+            
+            <!-- Price and Capacity -->
+            <div class="details-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Prix d'entrée (€)</mat-label>
+                <input 
+                  matInput 
+                  formControlName="entryPrice" 
+                  type="number"
+                  step="0.01"
+                  placeholder="Ex: 10.00">
+                <mat-icon matSuffix>euro</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Capacité maximum</mat-label>
+                <input 
+                  matInput 
+                  formControlName="maxCapacity" 
+                  type="number"
+                  placeholder="Ex: 500">
+                <mat-icon matSuffix>people</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <!-- Visit Duration -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Durée moyenne de visite (minutes)</mat-label>
+              <input 
+                matInput 
+                formControlName="averageVisitDuration" 
+                type="number"
+                placeholder="Ex: 120">
+              <mat-icon matSuffix>schedule</mat-icon>
+            </mat-form-field>
+
+            <!-- Heures d'ouverture -->
+            <div class="hours-section">
+              <h4>Heures d'ouverture</h4>
+              <div class="default-hours">
+                <mat-form-field appearance="outline">
+                  <mat-label>Ouverture (HH:mm)</mat-label>
+                  <mat-select formControlName="openingHours">
+                    <mat-option *ngFor="let time of timeOptions" [value]="time">
+                      {{ time }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Fermeture (HH:mm)</mat-label>
+                  <mat-select formControlName="closingHours">
+                    <mat-option *ngFor="let time of timeOptions" [value]="time">
+                      {{ time }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="step-actions">
+              <button mat-stroked-button (click)="stepper.previous()">
+                <mat-icon>arrow_back</mat-icon>
+                Précédent
+              </button>
+              <button 
+                mat-raised-button 
+                color="primary" 
+                (click)="stepper.next()">
+                Suivant
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-step>
+
+        <!-- Step 4: Contact & Status -->
+        <mat-step label="Contact & Statut">
+          <div class="step-content">
+            <h3 class="step-title">Informations de contact et statut</h3>
+            
+            <!-- Contact Information -->
+            <div class="contact-section">
+              <h4>Contact</h4>
+              
+              <div class="contact-row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Téléphone</mat-label>
+                  <input matInput formControlName="phoneNumber" placeholder="Ex: +21612345678">
+                  <mat-icon matSuffix>phone</mat-icon>
+                  <mat-error *ngIf="attractionForm.get('phoneNumber')?.hasError('pattern')">
+                    Format de téléphone invalide
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Email</mat-label>
+                  <input matInput formControlName="email" placeholder="Ex: info@bardo.tn">
+                  <mat-icon matSuffix>email</mat-icon>
+                  <mat-error *ngIf="attractionForm.get('email')?.hasError('email')">
+                    Email invalide
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Site web</mat-label>
+                <input matInput formControlName="websiteUrl" placeholder="https://www.bardo.tn">
+                <mat-icon matSuffix>language</mat-icon>
+                <mat-error *ngIf="attractionForm.get('websiteUrl')?.hasError('pattern')">
+                  URL invalide (doit commencer par http:// ou https://)
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <!-- Status Settings -->
+            <div class="status-section">
+              <h4>Paramètres de statut</h4>
+              
+              <div class="status-options">
+                <mat-slide-toggle formControlName="isActive" color="primary">
+                  Activé
+                </mat-slide-toggle>
+                <p class="status-hint">
+                  Si désactivé, l'attraction ne sera pas visible pour les visiteurs
+                </p>
+
+                <mat-slide-toggle formControlName="isFeatured" color="accent">
+                  Mettre en vedette
+                </mat-slide-toggle>
+                <p class="status-hint">
+                  Les attractions en vedette sont affichées en priorité
+                </p>
+              </div>
+            </div>
+
+            <!-- Form Summary (optional) -->
+            <div *ngIf="data.mode === 'edit' && data.attraction" class="summary-section">
+              <mat-card>
+                <mat-card-header>
+                  <mat-card-title>
+                    <mat-icon>info</mat-icon>
+                    Résumé
+                  </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <p>ID: {{ data.attraction.id }}</p>
+                  <p>Créé le: {{ data.attraction.createdAt | date:'medium' }}</p>
+                  <p>Note moyenne: {{ data.attraction.rating || 'N/A' }}/5</p>
+                  <p>Total avis: {{ data.attraction.totalReviews || 0 }}</p>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <!-- Navigation and Submit buttons -->
+            <div class="step-actions">
+              <button mat-stroked-button (click)="stepper.previous()">
+                <mat-icon>arrow_back</mat-icon>
+                Précédent
+              </button>
+              <button 
+                mat-raised-button 
+                color="primary" 
+                type="submit"
+                [disabled]="attractionForm.invalid || loading">
+                <mat-icon *ngIf="!loading">
+                  {{ data.mode === 'create' ? 'add' : 'save' }}
+                </mat-icon>
+                <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+                {{ data.mode === 'create' ? 'Créer' : 'Mettre à jour' }}
+              </button>
+            </div>
+          </div>
+        </mat-step>
+      </mat-stepper>
+    </mat-dialog-content>
+  </form>
+</div>
