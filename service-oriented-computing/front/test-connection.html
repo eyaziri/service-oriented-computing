@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test de Connexion - SOC Touristique</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test { margin: 20px 0; padding: 15px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Test de Connexion API Gateway</h1>
+    
+    <div id="results"></div>
+    
+    <button onclick="runTests()">Lancer les tests</button>
+    
+    <script>
+        const API_GATEWAY = 'http://localhost:8080';
+        const endpoints = [
+            { name: 'API Gateway Health', path: '/actuator/health' },
+            { name: 'Routes Gateway', path: '/actuator/gateway/routes' },
+            { name: 'Attractions REST', path: '/api/attractions' },
+            { name: 'Attractions Alternative', path: '/attractions' },
+            { name: 'GraphQL', path: '/graphql' },
+            { name: 'Cultural SOAP', path: '/api/cultural' }
+        ];
+        
+        async function testEndpoint(name, path) {
+            const url = `${API_GATEWAY}${path}`;
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'test';
+            
+            try {
+                console.log(`Testing: ${url}`);
+                const response = await fetch(url, { 
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    resultDiv.className += ' success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ ${name}</strong><br>
+                        <small>URL: ${url}</small><br>
+                        Status: ${response.status} ${response.statusText}
+                    `;
+                } else {
+                    resultDiv.className += ' error';
+                    resultDiv.innerHTML = `
+                        <strong>❌ ${name}</strong><br>
+                        <small>URL: ${url}</small><br>
+                        Status: ${response.status} ${response.statusText}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className += ' error';
+                resultDiv.innerHTML = `
+                    <strong>❌ ${name}</strong><br>
+                    <small>URL: ${url}</small><br>
+                    Erreur: ${error.message}
+                `;
+            }
+            
+            document.getElementById('results').appendChild(resultDiv);
+        }
+        
+        async function runTests() {
+            document.getElementById('results').innerHTML = '<h3>Résultats des tests:</h3>';
+            
+            for (const endpoint of endpoints) {
+                await testEndpoint(endpoint.name, endpoint.path);
+            }
+        }
+        
+        // Lancer les tests automatiquement
+        runTests();
+    </script>
+</body>
+</html>

@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
     container_name: smart-tourism-notification
     ports:
-      - "8083:8083"  # Port HTTP Spring Boot
+      - "8084:8083"  # Port HTTP Spring Boot
       - "9090:9090"  # Port gRPC
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/smart_tourism_notification
@@ -28,7 +28,7 @@ services:
       - MYSQL_ROOT_PASSWORD=Ameni123$
       - MYSQL_DATABASE=smart_tourism_notification
     ports:
-      - "3307:3306"
+      - "3309:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql

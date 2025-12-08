@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plateforme Touristique Tunisienne - SOC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+</head>
+<body>
+    <!-- Navigation principale -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-university me-2"></i> Tunisie SOC Touristique
+            </a>
+            <div class="navbar-text">
+                <span class="badge bg-info me-2" id="eurekaStatus">
+                    <i class="fas fa-plug"></i> Eureka
+                </span>
+                <span class="badge bg-success me-2" id="gatewayStatus">
+                    <i class="fas fa-door-open"></i> Gateway
+                </span>
+                <small class="text-light">Services: <span id="serviceCount">4</span>/4</small>
+            </div>
+            <div class="navbar-text">
+    <span class="badge bg-info me-2" id="eurekaStatus">
+        <i class="fas fa-plug"></i> Eureka
+    </span>
+    <span class="badge bg-success me-2" id="gatewayStatus">
+        <i class="fas fa-door-open"></i> Gateway
+    </span>
+    <small class="text-light">Services: <span id="serviceCount">4</span>/4</small>
+</div>
+
+<!-- Ajoutez cette div pour les messages de connexion -->
+<div id="connectionStatus" class="position-fixed top-0 start-50 translate-middle-x mt-5" style="z-index: 1050;"></div>
+        </div>
+    </nav>
+
+    <div class="container-fluid main-container">
+        <div class="row h-100">
+            <!-- Sidebar fixe -->
+            <div class="col-lg-2 col-md-3 sidebar-col">
+                <div class="sidebar">
+                    <!-- Logo et stats -->
+                    <div class="sidebar-header text-center py-3">
+                        <i class="fas fa-map-marked-alt fa-3x text-primary mb-2"></i>
+                        <h5>Tunisie Touristique</h5>
+                        <div class="stats-badges">
+                            <span class="badge bg-primary me-1">REST</span>
+                            <span class="badge bg-success me-1">SOAP</span>
+                            <span class="badge bg-danger me-1">gRPC</span>
+                            <span class="badge bg-purple">GraphQL</span>
+                        </div>
+                    </div>
+
+                    <!-- Navigation verticale -->
+                    <div class="sidebar-nav">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#rest-section">
+                                    <i class="fas fa-landmark me-2"></i> Attractions REST
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#soap-section">
+                                    <i class="fas fa-history me-2"></i> Historique SOAP
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#grpc-section">
+                                    <i class="fas fa-bell me-2"></i> Alertes gRPC
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#graphql-section">
+                                    <i class="fas fa-robot me-2"></i> Assistant GraphQL
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#monitoring">
+                                    <i class="fas fa-heartbeat me-2"></i> Monitoring
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Stats rapides -->
+                    <div class="sidebar-stats mt-4">
+                        <h6 class="sidebar-title">
+                            <i class="fas fa-chart-line me-2"></i> Statistiques
+                        </h6>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <i class="fas fa-map-marker-alt stat-icon"></i>
+                                <div>
+                                    <div class="stat-value" id="attractionsCount">0</div>
+                                    <div class="stat-label">Attractions</div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-exclamation-circle stat-icon"></i>
+                                <div>
+                                    <div class="stat-value" id="alertsCount">0</div>
+                                    <div class="stat-label">Alertes</div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-database stat-icon"></i>
+                                <div>
+                                    <div class="stat-value" id="graphqlQueries">0</div>
+                                    <div class="stat-label">Requêtes</div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-users stat-icon"></i>
+                                <div>
+                                    <div class="stat-value" id="usersOnline">1</div>
+                                    <div class="stat-label">Utilisateurs</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Service Status -->
+                    <div class="sidebar-status mt-4">
+                        <h6 class="sidebar-title">
+                            <i class="fas fa-server me-2"></i> Statut Services
+                        </h6>
+                        <div class="status-list">
+                            <div class="status-item">
+                                <span class="status-indicator status-up"></span>
+                                <span class="status-label">API Gateway</span>
+                                <span class="status-badge" id="gatewayStatusBadge">UP</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-indicator status-up"></span>
+                                <span class="status-label">Service REST</span>
+                                <span class="status-badge" id="restStatusBadge">UP</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-indicator status-up"></span>
+                                <span class="status-label">Service SOAP</span>
+                                <span class="status-badge" id="soapStatusBadge">UP</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-indicator status-up"></span>
+                                <span class="status-label">Service gRPC</span>
+                                <span class="status-badge" id="grpcStatusBadge">UP</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-indicator status-up"></span>
+                                <span class="status-label">Service GraphQL</span>
+                                <span class="status-badge" id="graphqlStatusBadge">UP</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Sidebar -->
+                    <div class="sidebar-footer mt-auto">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            <span id="currentTime">--:--:--</span>
+                        </small>
+                        <small class="text-muted d-block">
+                            Gateway: <span id="gatewayUrl">localhost:8080</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenu principal -->
+            <div class="col-lg-10 col-md-9 content-col">
+                <div class="content-wrapper">
+                    <!-- REST Section -->
+                    <section id="rest-section" class="section-card">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <i class="fas fa-landmark section-icon"></i>
+                                <h3>Service REST - Gestion des Attractions</h3>
+                            </div>
+                            <div class="section-badge">
+                                <span class="badge bg-primary">Port: 8081</span>
+                                <span class="badge bg-info">Protocol: REST</span>
+                            </div>
+                        </div>
+                        
+                        <div class="section-body">
+                            <div class="row">
+                                <!-- Recherche -->
+                                <div class="col-md-6">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-search me-2"></i>Rechercher des attractions</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="input-group mb-3">
+                                                <input type="text" id="searchInput" class="form-control" 
+                                                       placeholder="Nom, ville ou catégorie...">
+                                                <button class="btn btn-primary" onclick="ui.searchAttractions()">
+                                                    <i class="fas fa-search"></i>
+                                                </button>
+                                            </div>
+                                            <div class="filters">
+                                                <div class="row g-2">
+                                                    <div class="col">
+                                                        <select class="form-select" id="cityFilter">
+                                                            <option value="">Toutes les villes</option>
+                                                            <option>Tunis</option>
+                                                            <option>Sousse</option>
+                                                            <option>Hammamet</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col">
+                                                        <select class="form-select" id="categoryFilter">
+                                                            <option value="">Toutes catégories</option>
+                                                            <option>Culture</option>
+                                                            <option>Nature</option>
+                                                            <option>Histoire</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Résultats -->
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Résultats de recherche</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="attractionsResults" class="attractions-list">
+                                                <div class="text-center text-muted">
+                                                    <i class="fas fa-search fa-2x mb-2"></i>
+                                                    <p>Recherchez des attractions pour voir les résultats</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Création et détails -->
+                                <div class="col-md-6">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-plus-circle me-2"></i>Créer une attraction</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="createForm">
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-md-6">
+                                                        <input type="text" class="form-control" 
+                                                               placeholder="Nom" id="attractionName" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <input type="text" class="form-control" 
+                                                               placeholder="Ville" id="attractionCity" required>
+                                                    </div>
+                                                </div>
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-md-6">
+                                                        <select class="form-select" id="attractionCategory" required>
+                                                            <option value="">Catégorie</option>
+                                                            <option>Culture</option>
+                                                            <option>Nature</option>
+                                                            <option>Histoire</option>
+                                                            <option>Restaurant</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <input type="number" class="form-control" 
+                                                               placeholder="Prix (DT)" id="attractionPrice" step="0.5">
+                                                    </div>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <textarea class="form-control" rows="2" 
+                                                              placeholder="Description" id="attractionDescription"></textarea>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <input type="text" class="form-control" 
+                                                           placeholder="Tags (séparés par virgules)" id="attractionTags">
+                                                </div>
+                                                <div class="row g-2 mb-3">
+                                                    <div class="col">
+                                                        <input type="number" class="form-control" 
+                                                               placeholder="Latitude" id="attractionLat" step="any">
+                                                    </div>
+                                                    <div class="col">
+                                                        <input type="number" class="form-control" 
+                                                               placeholder="Longitude" id="attractionLng" step="any">
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-success w-100">
+                                                    <i class="fas fa-plus"></i> Créer l'attraction
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Carte -->
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-map me-2"></i>Carte interactive</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="map" class="attraction-map"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SOAP Section -->
+                    <section id="soap-section" class="section-card">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <i class="fas fa-history section-icon"></i>
+                                <h3>Service SOAP - Base Historique</h3>
+                            </div>
+                            <div class="section-badge">
+                                <span class="badge bg-success">Port: 8090</span>
+                                <span class="badge bg-info">Protocol: SOAP</span>
+                            </div>
+                        </div>
+                        
+                        <div class="section-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-header">
+                                            <h5>Monuments historiques</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <select class="form-select mb-3" id="monumentSelect" 
+                                                    onchange="ui.selectMonument(this.value)">
+                                                <option value="">Sélectionner un monument...</option>
+                                            </select>
+                                            <div id="monumentInfo" class="monument-info">
+                                                <div class="text-center text-muted">
+                                                    <i class="fas fa-landmark fa-2x mb-2"></i>
+                                                    <p>Sélectionnez un monument pour voir ses détails historiques</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-8">
+                                    <div class="card h-100">
+                                        <div class="card-header">
+                                            <h5>Comparaison de sites historiques</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-5">
+                                                    <label class="form-label">Site A</label>
+                                                    <input type="text" class="form-control" 
+                                                           placeholder="Nom du premier site" id="siteA">
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <label class="form-label">Site B</label>
+                                                    <input type="text" class="form-control" 
+                                                           placeholder="Nom du deuxième site" id="siteB">
+                                                </div>
+                                                <div class="col-md-2 d-flex align-items-end">
+                                                    <button class="btn btn-success w-100" onclick="ui.compareSites()">
+                                                        <i class="fas fa-balance-scale"></i> Comparer
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div id="comparisonResult" class="comparison-result">
+                                                <!-- Résultat de comparaison -->
+                                            </div>
+                                            
+                                            <div class="mt-4">
+                                                <h6>Statistiques touristiques</h6>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" 
+                                                           placeholder="Entrez une région" id="regionInput">
+                                                    <button class="btn btn-info" onclick="ui.getTouristStats()">
+                                                        <i class="fas fa-chart-bar"></i> Obtenir stats
+                                                    </button>
+                                                </div>
+                                                <div id="statsResult" class="mt-2"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- gRPC Section -->
+                    <section id="grpc-section" class="section-card">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <i class="fas fa-bell section-icon"></i>
+                                <h3>Service gRPC - Alertes Touristiques</h3>
+                            </div>
+                            <div class="section-badge">
+                                <span class="badge bg-danger">Port: 50051</span>
+                                <span class="badge bg-info">Protocol: gRPC</span>
+                            </div>
+                        </div>
+                        
+                        <div class="section-body">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="card h-100">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-paper-plane me-2"></i>Envoyer une alerte</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Type d'alerte</label>
+                                                <select class="form-select" id="alertType">
+                                                    <option value="WEATHER">🌤️ Alerte Météo</option>
+                                                    <option value="CROWD">👥 Alerte Foule</option>
+                                                    <option value="SECURITY">🛡️ Incident Sécurité</option>
+                                                    <option value="INFO">ℹ️ Information</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Localisation</label>
+                                                <input type="text" class="form-control" 
+                                                       placeholder="Ex: Tunis Centre, Sidi Bou Saïd..." 
+                                                       id="alertLocation">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Message</label>
+                                                <textarea class="form-control" rows="3" 
+                                                          placeholder="Description détaillée de l'alerte..."
+                                                          id="alertMessage"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Niveau de sévérité</label>
+                                                <div class="btn-group w-100" role="group">
+                                                    <input type="radio" class="btn-check" name="severity" 
+                                                           id="severity-low" autocomplete="off" checked>
+                                                    <label class="btn btn-outline-success" for="severity-low">Basse</label>
+                                                    
+                                                    <input type="radio" class="btn-check" name="severity" 
+                                                           id="severity-medium" autocomplete="off">
+                                                    <label class="btn btn-outline-warning" for="severity-medium">Moyenne</label>
+                                                    
+                                                    <input type="radio" class="btn-check" name="severity" 
+                                                           id="severity-high" autocomplete="off">
+                                                    <label class="btn btn-outline-danger" for="severity-high">Haute</label>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-danger w-100" onclick="services.sendAlert()">
+                                                <i class="fas fa-paper-plane"></i> Envoyer l'alerte
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-7">
+                                    <div class="card h-100">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h5><i class="fas fa-broadcast-tower me-2"></i>Alertes en temps réel</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="enableAlerts" checked>
+                                                <label class="form-check-label" for="enableAlerts">Actif</label>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="alertsStream" class="alerts-container">
+                                                <div class="alert alert-info">
+                                                    <div class="d-flex">
+                                                        <i class="fas fa-info-circle fa-lg me-3"></i>
+                                                        <div>
+                                                            <strong>Système de notifications</strong>
+                                                            <p class="mb-0">Les alertes en temps réel apparaîtront ici</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mt-3">
+                                                <h6>Mises à jour live</h6>
+                                                <div id="liveUpdatesFeed" class="live-updates">
+                                                    <!-- Mises à jour en temps réel -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- GraphQL Section -->
+                    <section id="graphql-section" class="section-card">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <i class="fas fa-project-diagram section-icon"></i>
+                                <h3>Service GraphQL - Assistant Intelligent</h3>
+                            </div>
+                            <div class="section-badge">
+                                <span class="badge bg-purple">Port: 4000</span>
+                                <span class="badge bg-info">Protocol: GraphQL</span>
+                            </div>
+                        </div>
+                        
+                        <div class="section-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-code me-2"></i>Éditeur GraphQL</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="editor-toolbar mb-2">
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <button class="btn btn-outline-secondary" onclick="ui.formatQuery()">
+                                                        <i class="fas fa-code"></i> Formater
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" onclick="ui.clearQuery()">
+                                                        <i class="fas fa-trash"></i> Effacer
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" onclick="ui.loadSample()">
+                                                        <i class="fas fa-vial"></i> Exemple
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <textarea id="graphqlEditor" class="graphql-editor" 
+                                                      placeholder="Entrez votre requête GraphQL ici...">
+query {
+  searchAttractions(filter: { city: "Tunis" }, limit: 5) {
+    id
+    name
+    city
+    category
+    price
+    tags
+  }
+}</textarea>
+                                            <button class="btn btn-purple w-100 mt-3" onclick="services.executeGraphQL()">
+                                                <i class="fas fa-play"></i> Exécuter la requête
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-database me-2"></i>Résultats</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="graphqlResults" class="results-container">
+                                                <div class="text-center text-muted">
+                                                    <i class="fas fa-database fa-2x mb-2"></i>
+                                                    <p>Les résultats des requêtes GraphQL apparaîtront ici</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mt-3">
+                                                <h6>Requêtes prédéfinies</h6>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <button class="btn btn-sm btn-outline-purple" 
+                                                            onclick="ui.loadQuery('freeAttractions')">
+                                                        🆓 Gratuits à Tunis
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-purple" 
+                                                            onclick="ui.loadQuery('culturalSites')">
+                                                        🏛️ Sites Culturels
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-purple" 
+                                                            onclick="ui.loadQuery('expensiveAttractions')">
+                                                        💎 Attractions Premium
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-purple" 
+                                                            onclick="ui.loadQuery('tunisAttractions')">
+                                                        📍 Tout à Tunis
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Monitoring Section -->
+                    <section id="monitoring" class="section-card">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <i class="fas fa-heartbeat section-icon"></i>
+                                <h3>Monitoring des Services</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="section-body">
+                            <div class="row" id="servicesHealth">
+                                <!-- Cartes de santé dynamiques -->
+                            </div>
+                            
+                            <div class="mt-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-terminal me-2"></i>Logs système</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="systemLogs" class="logs-container">
+                                            <div class="log-entry">
+                                                <span class="log-time">[12:00:00]</span>
+                                                <span class="log-info">System:</span>
+                                                <span>API Gateway démarré avec succès</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            app.init();
+            ui.init();
+            
+            // Mettre à jour l'heure en temps réel
+            setInterval(updateTime, 1000);
+            updateTime();
+            
+            // Initialiser la navigation
+            initNavigation();
+        });
+        
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        function initNavigation() {
+            // Smooth scroll pour les liens de navigation
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Retirer la classe active de tous les liens
+                    document.querySelectorAll('.sidebar-nav .nav-link').forEach(l => {
+                        l.classList.remove('active');
+                    });
+                    
+                    // Ajouter la classe active au lien cliqué
+                    this.classList.add('active');
+                    
+                    // Faire défiler jusqu'à la section
+                    const targetId = this.getAttribute('href');
+                    const targetSection = document.querySelector(targetId);
+                    if (targetSection) {
+                        targetSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

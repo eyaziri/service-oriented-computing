@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    build: .
+    container_name: eureka-server
+    restart: unless-stopped
+    ports:
+      - "8762:8761"
+    environment:
+      # Configuration Eureka
+      SERVER_PORT: "8761"
+      EUREKA_CLIENT_FETCH_REGISTRY: "false"
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
+      
+      # Configuration sécurité (optionnel)
+      # EUREKA_INSTANCE_HOSTNAME: "eureka-server"
+      # EUREKA_DATACENTERINFO_NAME: "MyOwn"
+      
+      # Configuration mémoire
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseG1GC"
+      
+      # Profil Spring
+      SPRING_PROFILES_ACTIVE: "docker"
+      
+    # Healthcheck pour vérifier que Eureka est opérationnel
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health || curl -f http://localhost:8761/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      
+    # Limites de ressources (optionnel)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+          
+    networks:
+      - eureka-network
+
+# Réseau pour connecter d'autres services
+networks:
+  eureka-network:
+    driver: bridge

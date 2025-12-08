@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "8088:8080"  # 8088 sur votre machine, 8080 dans le conteneur
+    environment:
+      # Configuration de base
+      SERVER_PORT: "8080"
+      SPRING_APPLICATION_NAME: "api-gateway"
+      
+      # Eureka
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://host.docker.internal:8761/eureka/"
+      EUREKA_INSTANCE_HOSTNAME: localhost
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
+      EUREKA_CLIENT_FETCH_REGISTRY: "true"
+      
+      # Circuit Breaker (même configuration que votre application.yml)
+      RESILIENCE4J_CIRCUITBREAKER_INSTANCES_ALERTSCIRCUIT_SLIDINGWINDOWSIZE: "10"
+      RESILIENCE4J_CIRCUITBREAKER_INSTANCES_ALERTSCIRCUIT_MINIMUMNUMBEROFCALLS: "5"
+      RESILIENCE4J_CIRCUITBREAKER_INSTANCES_ALERTSCIRCUIT_WAITDURATIONINOPENSTATE: "5s"
+      RESILIENCE4J_CIRCUITBREAKER_INSTANCES_ALERTSCIRCUIT_FAILURERATETHRESHOLD: "50"
+      
+      # Actuator
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,metrics,gateway,circuitbreakers,routes"
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
+      MANAGEMENT_ENDPOINT_GATEWAY_ENABLED: "true"
+      
+      # Logging
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY: "DEBUG"
+      
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    
+    # Healthcheck
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

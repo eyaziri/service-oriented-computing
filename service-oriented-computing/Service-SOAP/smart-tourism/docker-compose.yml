@@ -9,9 +9,27 @@ services:
       MYSQL_ROOT_PASSWORD: 112233**
       MYSQL_DATABASE: smart_tourism
     ports:
-      - "3307:3306"
+      - "3311:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+
+  smart-tourism:
+    build:
+      context: .  # ou le chemin vers le projet smart-tourism
+      dockerfile: Dockerfile-smart-tourism  # un Dockerfile différent
+    container_name: smart-tourism
+    restart: unless-stopped
+    ports:
+      - "8085:8080"  # Ce port était manquant
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/smart_tourism?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 112233**
+      SERVER_PORT: "8080"
+    depends_on:
+      - mysql-db
+    networks:
+      - smart-tourism-network
 
   soap-service:
     build: .
@@ -20,26 +38,12 @@ services:
     ports:
       - "8090:8090"
     environment:
-      # Database
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/smart_tourism?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+      # Utilisez le nom du service MySQL (mysql-db) au lieu de host.docker.internal
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/smart_tourism?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 112233**
-      
-      # Application
       SERVER_PORT: "8090"
       SPRING_APPLICATION_NAME: "cultural-soap-service"
-      
-      # Eureka
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://host.docker.internal:8761/eureka/"
-      EUREKA_INSTANCE_HOSTNAME: "localhost"
-      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
-      EUREKA_CLIENT_FETCH_REGISTRY: "true"
-      
-      # Actuator
-      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,metrics"
-      
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
       - mysql-db
     networks:

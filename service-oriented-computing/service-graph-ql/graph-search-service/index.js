@@ -1,11 +1,18 @@
 require('dotenv').config();
 const { ApolloServer } = require('apollo-server');
-const typeDefs = require('./schema/typeDefs');
-const resolvers = require('./schema/resolvers');
+const fs = require('fs'); // <-- Ajoutez cette ligne
+const path = require('path'); // <-- Ajoutez cette ligne
+const resolvers = require('./schema/resolvers'); // <-- Plus besoin de typeDefs
 const { sequelize } = require('./models/index');
-const eurekaClient = require('./eureka-client'); // Import Eureka client
+const eurekaClient = require('./eureka-client');
 
 const PORT = process.env.PORT || 4000;
+
+// Lire le schéma GraphQL depuis le fichier .graphql
+const typeDefs = fs.readFileSync(
+  path.join(__dirname, 'schema', 'schema.graphql'),
+  'utf8'
+);
 
 async function start() {
   try {
@@ -38,7 +45,7 @@ async function start() {
     });
 
     const server = new ApolloServer({
-      typeDefs,
+      typeDefs, // Utilise maintenant le schéma lu depuis le fichier
       resolvers,
       context: ({ req }) => ({}),
       introspection: true,
@@ -55,6 +62,7 @@ async function start() {
     console.log(`🚀 GraphQL: ${url}`);
     console.log(`📡 Eureka Dashboard: http://eureka-server:8761`);
     console.log(`🔧 Apollo Sandbox: ${url}`);
+    console.log('📄 Schéma SDL: ./schema/schema.graphql'); // <-- Ajoutez cette ligne
     console.log('========================================');
 
     // Gérer l'arrêt propre

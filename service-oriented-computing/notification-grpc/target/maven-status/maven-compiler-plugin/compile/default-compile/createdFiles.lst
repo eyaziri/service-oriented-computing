@@ -1,7 +1,6 @@
 com\smarttourism\notification\dto\CreateNotificationRequest.class
 com\smarttourism\notification\AlertListResponse$1.class
 com\smarttourism\notification\dto\NotificationDTO.class
-notification.proto
 com\smarttourism\notification\AlertRequest.class
 com\smarttourism\notification\NotificationServiceGrpc$NotificationServiceBaseDescriptorSupplier.class
 com\smarttourism\notification\StreamRequest.class
@@ -16,7 +15,6 @@ com\smarttourism\notification\NotificationServiceGrpc$NotificationServiceFutureS
 com\smarttourism\notification\entity\Notification.class
 com\smarttourism\notification\controller\HealthController.class
 com\smarttourism\notification\AlertListResponseOrBuilder.class
-application.yml
 com\smarttourism\notification\AlertListResponse.class
 com\smarttourism\notification\NotificationServiceGrpc$MethodHandlers.class
 com\smarttourism\notification\NotificationServiceGrpc$NotificationServiceMethodDescriptorSupplier.class
