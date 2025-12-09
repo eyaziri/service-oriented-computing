@@ -14,7 +14,7 @@
   </div>
 
   <!-- Form -->
-  <form [formGroup]="attractionForm" (ngSubmit)="onSubmit()">
+  <form [formGroup]="attractionForm">
     <mat-dialog-content class="dialog-content">
       <mat-stepper linear #stepper>
         
@@ -90,6 +90,7 @@
               <button 
                 mat-raised-button 
                 color="primary" 
+                type="button"
                 (click)="goToNextStep(stepper, 1)"
                 [disabled]="!attractionForm.get('name')?.valid || !attractionForm.get('category')?.valid">
                 Suivant
@@ -171,13 +172,14 @@
 
             <!-- Navigation buttons -->
             <div class="step-actions">
-              <button mat-stroked-button (click)="stepper.previous()">
+              <button mat-stroked-button type="button" (click)="stepper.previous()">
                 <mat-icon>arrow_back</mat-icon>
                 Précédent
               </button>
               <button 
                 mat-raised-button 
                 color="primary" 
+                type="button"
                 (click)="goToNextStep(stepper, 2)"
                 [disabled]="!attractionForm.get('city')?.valid || 
                            !attractionForm.get('location.country')?.valid">
@@ -254,13 +256,14 @@
 
             <!-- Navigation buttons -->
             <div class="step-actions">
-              <button mat-stroked-button (click)="stepper.previous()">
+              <button mat-stroked-button type="button" (click)="stepper.previous()">
                 <mat-icon>arrow_back</mat-icon>
                 Précédent
               </button>
               <button 
                 mat-raised-button 
                 color="primary" 
+                type="button"
                 (click)="stepper.next()">
                 Suivant
                 <mat-icon>arrow_forward</mat-icon>
@@ -329,6 +332,18 @@
               </div>
             </div>
 
+            <!-- Debug button (optionnel) -->
+            <div class="debug-section" *ngIf="false">
+              <button 
+                mat-stroked-button 
+                color="warn" 
+                type="button"
+                (click)="debugForm()">
+                <mat-icon>bug_report</mat-icon>
+                Debug Form
+              </button>
+            </div>
+
             <!-- Form Summary (optional) -->
             <div *ngIf="data.mode === 'edit' && data.attraction" class="summary-section">
               <mat-card>
@@ -349,14 +364,17 @@
 
             <!-- Navigation and Submit buttons -->
             <div class="step-actions">
-              <button mat-stroked-button (click)="stepper.previous()">
+              <button mat-stroked-button type="button" (click)="stepper.previous()">
                 <mat-icon>arrow_back</mat-icon>
                 Précédent
               </button>
+              
+              <!-- Bouton de soumission FINAL -->
               <button 
                 mat-raised-button 
                 color="primary" 
-                type="submit"
+                type="button"
+                (click)="onSubmit()"
                 [disabled]="attractionForm.invalid || loading">
                 <mat-icon *ngIf="!loading">
                   {{ data.mode === 'create' ? 'add' : 'save' }}

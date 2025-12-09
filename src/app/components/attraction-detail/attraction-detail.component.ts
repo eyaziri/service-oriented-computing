@@ -162,10 +162,10 @@ calculateRatingDistribution(): any[] {
   }
 
   getOpeningHours(): string {
-    if (!this.attraction.openingTime || !this.attraction.closingTime) {
+    if (!this.attraction.openingHours || !this.attraction.closingHours) {
       return '24h/24';
     }
-    return `${this.formatTime(this.attraction.openingTime)} - ${this.formatTime(this.attraction.closingTime)}`;
+    return `${this.formatTime(this.attraction.openingHours)} - ${this.formatTime(this.attraction.closingHours)}`;
   }
 
   private formatTime(timeString: string): string {

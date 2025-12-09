@@ -285,6 +285,20 @@
   }
 }
 
+.form-error {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.debug-section {
+  margin: 16px 0;
+  padding: 8px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+}
+
 // Form validation styles
 :host ::ng-deep {
   .mat-form-field {

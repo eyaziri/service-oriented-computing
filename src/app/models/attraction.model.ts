@@ -29,8 +29,8 @@ export interface Attraction {
   location: Location;
   city: string;
   entryPrice: number;
-  openingTime?: string;
-  closingTime?: string;
+  closingHours?: string;
+  openingHours?: string;
   maxCapacity?: number;
   currentVisitors: number;
   rating: number;

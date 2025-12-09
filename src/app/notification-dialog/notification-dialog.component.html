@@ -1,0 +1,94 @@
+<p>notification-dialog works!</p>
+<div class="notification-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>notifications</mat-icon>
+    Créer une notification pour {{ data.attractionName }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="notificationForm">
+      
+      <!-- Type de notification -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Type de notification *</mat-label>
+        <mat-select formControlName="type" required>
+          <mat-option value="CROWD">Affluence</mat-option>
+          <mat-option value="WEATHER">Météo</mat-option>
+          <mat-option value="SECURITY">Sécurité</mat-option>
+          <mat-option value="TRAFFIC">Trafic</mat-option>
+          <mat-option value="HEALTH">Santé</mat-option>
+          <mat-option value="OTHER">Autre</mat-option>
+        </mat-select>
+        <mat-icon matSuffix>warning</mat-icon>
+        <mat-error *ngIf="notificationForm.get('type')?.hasError('required')">
+          Le type est obligatoire
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Localisation (pré-remplie avec l'attraction) -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Localisation *</mat-label>
+        <input matInput formControlName="location" required>
+        <mat-icon matSuffix>location_on</mat-icon>
+        <mat-error *ngIf="notificationForm.get('location')?.hasError('required')">
+          La localisation est obligatoire
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Message -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Message *</mat-label>
+        <textarea 
+          matInput 
+          formControlName="message" 
+          rows="4"
+          placeholder="Décrivez la notification..."
+          required></textarea>
+        <mat-error *ngIf="notificationForm.get('message')?.hasError('required')">
+          Le message est obligatoire
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Gravité -->
+      <div class="severity-section">
+        <h4>Gravité *</h4>
+        <mat-slider 
+          min="1" 
+          max="5" 
+          step="1"
+          formControlName="severity"
+          thumbLabel
+          [displayWith]="displaySeverity">
+        </mat-slider>
+        <div class="severity-labels">
+          <span>Faible</span>
+          <span>Moyenne</span>
+          <span>Haute</span>
+          <span>Critique</span>
+          <span>Urgent</span>
+        </div>
+        <div class="severity-display">
+          <span class="severity-value">{{ displaySeverity(notificationForm.get('severity')?.value) }}</span>
+          <mat-icon 
+            [style.color]="getSeverityColor(notificationForm.get('severity')?.value)">
+            {{ getSeverityIcon(notificationForm.get('severity')?.value) }}
+          </mat-icon>
+        </div>
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      [disabled]="notificationForm.invalid || loading"
+      (click)="onSubmit()">
+      <mat-icon *ngIf="!loading">send</mat-icon>
+      <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+      {{ loading ? 'Création...' : 'Créer la notification' }}
+    </button>
+  </mat-dialog-actions>
+</div>

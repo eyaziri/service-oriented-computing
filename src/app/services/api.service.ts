@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { Attraction, Category } from '../models/attraction.model';
@@ -10,7 +10,9 @@ import { Review } from '../models/review.model';
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:8080/api/attractions'; // Votre backend Spring Boot
+  // ✅ CORRIGÉ: URL de base sans /attractions à la fin
+  private baseUrl = 'http://localhost:8080/api';
+  private attractionsUrl = `${this.baseUrl}/attractions`;
 
   constructor(private http: HttpClient) {}
 
@@ -20,7 +22,7 @@ export class ApiService {
    * Récupérer toutes les attractions
    */
   getAllAttractions(): Observable<Attraction[]> {
-    return this.http.get<Attraction[]>(`${this.apiUrl}/attractions`)
+    return this.http.get<Attraction[]>(`${this.attractionsUrl}`)
       .pipe(
         map(attractions => this.enrichAttractions(attractions)),
         catchError(() => of([]))
@@ -37,7 +39,7 @@ export class ApiService {
       .set('sortBy', sortBy)
       .set('direction', direction);
 
-    return this.http.get<any>(`${this.apiUrl}/paginated`, { params })
+    return this.http.get<any>(`${this.attractionsUrl}/paginated`, { params })
       .pipe(
         map(response => ({
           ...response,
@@ -63,7 +65,7 @@ export class ApiService {
       if (searchParams.minRating) params = params.set('minRating', searchParams.minRating);
     }
 
-    return this.http.get<any>(`${this.apiUrl}/search`, { params })
+    return this.http.get<any>(`${this.attractionsUrl}/search`, { params })
       .pipe(
         map(response => ({
           ...response,
@@ -77,7 +79,7 @@ export class ApiService {
    * Recherche rapide d'attractions
    */
   quickSearchAttractions(query: string): Observable<Attraction[]> {
-    return this.http.get<Attraction[]>(`${this.apiUrl}/search/quick`, {
+    return this.http.get<Attraction[]>(`${this.attractionsUrl}/search/quick`, {
       params: { query }
     }).pipe(
       map(attractions => this.enrichAttractions(attractions)),
@@ -89,7 +91,7 @@ export class ApiService {
    * Récupérer une attraction par ID
    */
   getAttractionById(id: number): Observable<Attraction> {
-    return this.http.get<Attraction>(`${this.apiUrl}/${id}`)
+    return this.http.get<Attraction>(`${this.attractionsUrl}/${id}`)
       .pipe(
         map(attraction => this.enrichAttraction(attraction)),
         catchError(error => {
@@ -103,7 +105,7 @@ export class ApiService {
    * Récupérer les attractions par ville
    */
   getAttractionsByCity(city: string): Observable<Attraction[]> {
-    return this.http.get<Attraction[]>(`${this.apiUrl}/city/${city}`)
+    return this.http.get<Attraction[]>(`${this.attractionsUrl}/city/${city}`)
       .pipe(
         map(attractions => this.enrichAttractions(attractions)),
         catchError(() => of([]))
@@ -118,7 +120,7 @@ export class ApiService {
       .set('page', page.toString())
       .set('size', size.toString());
 
-    return this.http.get<any>(`${this.apiUrl}/attractions/city/${city}/paginated`, { params })
+    return this.http.get<any>(`${this.attractionsUrl}/city/${city}/paginated`, { params })
       .pipe(
         map(response => ({
           ...response,
@@ -132,7 +134,7 @@ export class ApiService {
    * Récupérer les attractions par catégorie
    */
   getAttractionsByCategory(category: Category): Observable<Attraction[]> {
-    return this.http.get<Attraction[]>(`${this.apiUrl}/category/${category}`)
+    return this.http.get<Attraction[]>(`${this.attractionsUrl}/category/${category}`)
       .pipe(
         map(attractions => this.enrichAttractions(attractions)),
         catchError(() => of([]))
@@ -143,7 +145,7 @@ export class ApiService {
    * Récupérer les attractions en vedette
    */
   getFeaturedAttractions(): Observable<Attraction[]> {
-    return this.http.get<Attraction[]>(`${this.apiUrl}/featured`)
+    return this.http.get<Attraction[]>(`${this.attractionsUrl}/featured`)
       .pipe(
         map(attractions => this.enrichAttractions(attractions)),
         catchError(() => of([]))
@@ -154,7 +156,7 @@ export class ApiService {
    * Récupérer les attractions les mieux notées
    */
   getTopRatedAttractions(): Observable<Attraction[]> {
-    return this.http.get<Attraction[]>(`${this.apiUrl}/top-rated`)
+    return this.http.get<Attraction[]>(`${this.attractionsUrl}/top-rated`)
       .pipe(
         map(attractions => this.enrichAttractions(attractions)),
         catchError(() => of([]))
@@ -165,7 +167,7 @@ export class ApiService {
    * Récupérer toutes les villes disponibles
    */
   getAllCities(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/cities`)
+    return this.http.get<string[]>(`${this.attractionsUrl}/cities`)
       .pipe(catchError(() => of([])));
   }
 
@@ -173,7 +175,7 @@ export class ApiService {
    * Récupérer toutes les catégories disponibles
    */
   getAllCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>(`${this.apiUrl}/categories`)
+    return this.http.get<Category[]>(`${this.attractionsUrl}/categories`)
       .pipe(catchError(() => of(Object.values(Category))));
   }
 
@@ -181,36 +183,80 @@ export class ApiService {
    * Récupérer les statistiques des attractions
    */
   getAttractionsStatistics(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/statistics`)
+    return this.http.get<any>(`${this.attractionsUrl}/statistics`)
       .pipe(catchError(() => of({})));
   }
 
   /**
    * Créer une nouvelle attraction
+   * ✅ CORRIGÉ: URL correcte
    */
   createAttraction(attractionData: any): Observable<Attraction> {
-    return this.http.post<Attraction>(`${this.apiUrl}`, attractionData);
-  }
+  console.log('🌐 POST URL:', this.attractionsUrl);
+  console.log('📦 Payload complet:', attractionData);
+  console.log('📦 Payload JSON:', JSON.stringify(attractionData, null, 2));
+  
+  // Ajoutez les headers
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  };
+  
+  return this.http.post<Attraction>(this.attractionsUrl, attractionData, { 
+    headers,
+    observe: 'response'  // Pour voir toute la réponse
+  }).pipe(
+    map(response => {
+      console.log('✅ Réponse réussie:', response);
+      return response.body as Attraction;
+    }),
+    catchError((error: HttpErrorResponse) => {
+      console.error('❌ ERREUR DÉTAILLÉE:');
+      console.error('- Status:', error.status);
+      console.error('- Status Text:', error.statusText);
+      console.error('- Headers:', error.headers);
+      console.error('- URL:', error.url);
+      console.error('- Error body:', error.error);
+      console.error('- Error message:', error.message);
+      
+      // Essayez de parser le corps de l'erreur
+      if (error.error) {
+        try {
+          const errorBody = typeof error.error === 'string' ? JSON.parse(error.error) : error.error;
+          console.error('- Error body parsed:', errorBody);
+          
+          if (errorBody.errors) {
+            console.error('- Validation errors:', errorBody.errors);
+          }
+        } catch (e) {
+          console.error('- Error body (raw):', error.error);
+        }
+      }
+      
+      throw error;
+    })
+  );
+}
 
   /**
    * Mettre à jour une attraction
    */
   updateAttraction(id: number, attractionData: any): Observable<Attraction> {
-    return this.http.put<Attraction>(`${this.apiUrl}/${id}`, attractionData);
+    return this.http.put<Attraction>(`${this.attractionsUrl}/${id}`, attractionData);
   }
 
   /**
    * Supprimer une attraction
    */
   deleteAttraction(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.attractionsUrl}/${id}`);
   }
 
   /**
    * Mettre à jour le nombre de visiteurs
    */
   updateAttractionVisitors(id: number, visitorCount: number): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/${id}/visitors`, null, {
+    return this.http.patch<void>(`${this.attractionsUrl}/${id}/visitors`, null, {
       params: { visitorCount: visitorCount.toString() }
     });
   }
@@ -221,21 +267,21 @@ export class ApiService {
    * Créer une nouvelle réservation
    */
   createReservation(reservationData: any): Observable<Reservation> {
-    return this.http.post<Reservation>(`${this.apiUrl}/reservations`, reservationData);
+    return this.http.post<Reservation>(`${this.baseUrl}/reservations`, reservationData);
   }
 
   /**
    * Récupérer une réservation par ID
    */
   getReservationById(id: number): Observable<Reservation> {
-    return this.http.get<Reservation>(`${this.apiUrl}/reservations/${id}`);
+    return this.http.get<Reservation>(`${this.baseUrl}/reservations/${id}`);
   }
 
   /**
    * Récupérer une réservation par code
    */
   getReservationByCode(code: string): Observable<Reservation> {
-    return this.http.get<Reservation>(`${this.apiUrl}/reservations/code/${code}`);
+    return this.http.get<Reservation>(`${this.baseUrl}/reservations/code/${code}`);
   }
 
   /**
@@ -247,10 +293,10 @@ export class ApiService {
         .set('page', page.toString())
         .set('size', size.toString());
 
-      return this.http.get<any>(`${this.apiUrl}/reservations/tourist/${touristId}/paginated`, { params });
+      return this.http.get<any>(`${this.baseUrl}/reservations/tourist/${touristId}/paginated`, { params });
     }
 
-    return this.http.get<Reservation[]>(`${this.apiUrl}/reservations/tourist/${touristId}`);
+    return this.http.get<Reservation[]>(`${this.baseUrl}/reservations/tourist/${touristId}`);
   }
 
   /**
@@ -262,17 +308,17 @@ export class ApiService {
         .set('page', page.toString())
         .set('size', size.toString());
 
-      return this.http.get<any>(`${this.apiUrl}/reservations/attraction/${attractionId}/paginated`, { params });
+      return this.http.get<any>(`${this.baseUrl}/reservations/attraction/${attractionId}/paginated`, { params });
     }
 
-    return this.http.get<Reservation[]>(`${this.apiUrl}/reservations/attraction/${attractionId}`);
+    return this.http.get<Reservation[]>(`${this.baseUrl}/reservations/attraction/${attractionId}`);
   }
 
   /**
    * Mettre à jour le statut d'une réservation
    */
   updateReservationStatus(id: number, status: ReservationStatus): Observable<Reservation> {
-    return this.http.patch<Reservation>(`${this.apiUrl}/reservations/${id}/status`, null, {
+    return this.http.patch<Reservation>(`${this.baseUrl}/reservations/${id}/status`, null, {
       params: { status }
     });
   }
@@ -282,28 +328,28 @@ export class ApiService {
    */
   cancelReservation(id: number, reason?: string): Observable<Reservation> {
     const params = reason ? new HttpParams().set('reason', reason) : new HttpParams();
-    return this.http.post<Reservation>(`${this.apiUrl}/reservations/${id}/cancel`, null, { params });
+    return this.http.post<Reservation>(`${this.baseUrl}/reservations/${id}/cancel`, null, { params });
   }
 
   /**
    * Check-in d'une réservation
    */
   checkInReservation(id: number): Observable<Reservation> {
-    return this.http.post<Reservation>(`${this.apiUrl}/reservations/${id}/checkin`, null);
+    return this.http.post<Reservation>(`${this.baseUrl}/reservations/${id}/checkin`, null);
   }
 
   /**
    * Check-out d'une réservation
    */
   checkOutReservation(id: number): Observable<Reservation> {
-    return this.http.post<Reservation>(`${this.apiUrl}/reservations/${id}/checkout`, null);
+    return this.http.post<Reservation>(`${this.baseUrl}/reservations/${id}/checkout`, null);
   }
 
   /**
    * Vérifier la disponibilité
    */
   checkAvailability(attractionId: number, date: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/reservations/availability/${attractionId}`, {
+    return this.http.get<any>(`${this.baseUrl}/reservations/availability/${attractionId}`, {
       params: { date }
     });
   }
@@ -312,21 +358,21 @@ export class ApiService {
    * Récupérer les statistiques de réservation
    */
   getReservationStatistics(attractionId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/reservations/statistics/${attractionId}`);
+    return this.http.get<any>(`${this.baseUrl}/reservations/statistics/${attractionId}`);
   }
 
   /**
    * Récupérer les réservations du jour
    */
   getTodayReservations(): Observable<Reservation[]> {
-    return this.http.get<Reservation[]>(`${this.apiUrl}/reservations/today`);
+    return this.http.get<Reservation[]>(`${this.baseUrl}/reservations/today`);
   }
 
   /**
    * Récupérer les réservations à venir d'un touriste
    */
   getUpcomingReservations(touristId: string): Observable<Reservation[]> {
-    return this.http.get<Reservation[]>(`${this.apiUrl}/reservations/upcoming/${touristId}`);
+    return this.http.get<Reservation[]>(`${this.baseUrl}/reservations/upcoming/${touristId}`);
   }
 
   // === AVIS ===
@@ -335,24 +381,24 @@ export class ApiService {
    * Créer un nouvel avis
    */
   createReview(reviewData: any): Observable<Review> {
-    return this.http.post<Review>(`${this.apiUrl}/reviews`, reviewData);
+    return this.http.post<Review>(`${this.baseUrl}/reviews`, reviewData);
   }
 
   /**
    * Récupérer un avis par ID
    */
   getReviewById(id: number): Observable<Review> {
-    return this.http.get<Review>(`${this.apiUrl}/reviews/${id}`);
+    return this.http.get<Review>(`${this.baseUrl}/reviews/${id}`);
   }
 
   /**
    * Récupérer les avis d'une attraction
    */
   getAttractionReviews(attractionId: number, page?: number, size?: number, sortBy?: string): Observable<any> {
-    let url = `${this.apiUrl}/reviews/attraction/${attractionId}`;
+    let url = `${this.baseUrl}/reviews/attraction/${attractionId}`;
     
     if (sortBy) {
-      url = `${this.apiUrl}/reviews/attraction/${attractionId}/sorted`;
+      url = `${this.baseUrl}/reviews/attraction/${attractionId}/sorted`;
       const params = new HttpParams()
         .set('sortBy', sortBy)
         .set('page', page?.toString() || '0')
@@ -365,7 +411,7 @@ export class ApiService {
         .set('page', page.toString())
         .set('size', size.toString());
 
-      return this.http.get<any>(`${this.apiUrl}/reviews/attraction/${attractionId}/paginated`, { params });
+      return this.http.get<any>(`${this.baseUrl}/reviews/attraction/${attractionId}/paginated`, { params });
     }
 
     return this.http.get<Review[]>(url);
@@ -380,31 +426,31 @@ export class ApiService {
         .set('page', page.toString())
         .set('size', size.toString());
 
-      return this.http.get<any>(`${this.apiUrl}/reviews/tourist/${touristId}/paginated`, { params });
+      return this.http.get<any>(`${this.baseUrl}/reviews/tourist/${touristId}/paginated`, { params });
     }
 
-    return this.http.get<Review[]>(`${this.apiUrl}/reviews/tourist/${touristId}`);
+    return this.http.get<Review[]>(`${this.baseUrl}/reviews/tourist/${touristId}`);
   }
 
   /**
    * Récupérer les avis vérifiés d'une attraction
    */
   getVerifiedReviews(attractionId: number): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.apiUrl}/reviews/attraction/${attractionId}/verified`);
+    return this.http.get<Review[]>(`${this.baseUrl}/reviews/attraction/${attractionId}/verified`);
   }
 
   /**
    * Mettre à jour un avis
    */
   updateReview(id: number, reviewData: any): Observable<Review> {
-    return this.http.put<Review>(`${this.apiUrl}/reviews/${id}`, reviewData);
+    return this.http.put<Review>(`${this.baseUrl}/reviews/${id}`, reviewData);
   }
 
   /**
    * Supprimer un avis
    */
   deleteReview(id: number, touristId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/reviews/${id}`, {
+    return this.http.delete<void>(`${this.baseUrl}/reviews/${id}`, {
       params: { touristId }
     });
   }
@@ -413,14 +459,14 @@ export class ApiService {
    * Marquer un avis comme utile
    */
   markReviewAsHelpful(id: number): Observable<Review> {
-    return this.http.post<Review>(`${this.apiUrl}/reviews/${id}/helpful`, null);
+    return this.http.post<Review>(`${this.baseUrl}/reviews/${id}/helpful`, null);
   }
 
   /**
    * Ajouter une réponse à un avis
    */
   addReplyToReview(id: number, reply: string): Observable<Review> {
-    return this.http.post<Review>(`${this.apiUrl}/reviews/${id}/reply`, null, {
+    return this.http.post<Review>(`${this.baseUrl}/reviews/${id}/reply`, null, {
       params: { reply }
     });
   }
@@ -429,21 +475,21 @@ export class ApiService {
    * Récupérer les statistiques d'avis
    */
   getReviewStatistics(attractionId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/reviews/statistics/${attractionId}`);
+    return this.http.get<any>(`${this.baseUrl}/reviews/statistics/${attractionId}`);
   }
 
   /**
    * Récupérer le résumé des avis
    */
   getReviewSummary(attractionId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/reviews/summary/${attractionId}`);
+    return this.http.get<any>(`${this.baseUrl}/reviews/summary/${attractionId}`);
   }
 
   /**
    * Récupérer les avis récents
    */
   getRecentReviews(limit: number = 10): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.apiUrl}/reviews/recent`, {
+    return this.http.get<Review[]>(`${this.baseUrl}/reviews/recent`, {
       params: { limit: limit.toString() }
     });
   }
@@ -452,7 +498,7 @@ export class ApiService {
    * Récupérer les attractions les mieux notées
    */
   getTopRatedAttractionsWithReviews(limit: number = 5): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/reviews/top-rated`, {
+    return this.http.get<any[]>(`${this.baseUrl}/reviews/top-rated`, {
       params: { limit: limit.toString() }
     });
   }
@@ -461,7 +507,7 @@ export class ApiService {
    * Rechercher dans les avis
    */
   searchReviews(query: string): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.apiUrl}/reviews/search`, {
+    return this.http.get<Review[]>(`${this.baseUrl}/reviews/search`, {
       params: { query }
     });
   }
@@ -470,7 +516,7 @@ export class ApiService {
    * Vérifier un avis
    */
   verifyReview(id: number, verified: boolean = true): Observable<Review> {
-    return this.http.patch<Review>(`${this.apiUrl}/reviews/${id}/verify`, null, {
+    return this.http.patch<Review>(`${this.baseUrl}/reviews/${id}/verify`, null, {
       params: { verified: verified.toString() }
     });
   }
@@ -502,12 +548,12 @@ export class ApiService {
    * Vérifier si une attraction est ouverte
    */
   private isAttractionOpen(attraction: Attraction): boolean {
-    if (!attraction.openingTime || !attraction.closingTime) return true;
+    if (!attraction.openingHours || !attraction.closingHours) return true;
     
     const now = new Date();
     const currentTime = now.getHours() * 100 + now.getMinutes();
-    const opening = this.timeToMinutes(attraction.openingTime);
-    const closing = this.timeToMinutes(attraction.closingTime);
+    const opening = this.timeToMinutes(attraction.openingHours);
+    const closing = this.timeToMinutes(attraction.closingHours);
     
     return currentTime >= opening && currentTime <= closing;
   }
@@ -572,7 +618,6 @@ export class ApiService {
    * Simuler un utilisateur connecté (à remplacer par votre authentification)
    */
   getCurrentUser(): any {
-    // À remplacer par votre système d'authentification
     return {
       id: 'tourist-123',
       name: 'Jean Dupont',

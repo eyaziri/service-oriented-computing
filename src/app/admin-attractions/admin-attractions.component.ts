@@ -8,6 +8,8 @@ import { ApiService } from '../services/api.service';
 import { Attraction, Category } from '../models/attraction.model';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { AttractionFormDialogComponent } from '../attraction-form-dialog/attraction-form-dialog.component';
+import { NotificationDialogComponent } from '../notification-dialog/notification-dialog.component';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-admin-attractions',
@@ -49,13 +51,34 @@ export class AdminAttractionsComponent implements OnInit {
   constructor(
     private apiService: ApiService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationService, // Ajoutez ceci
+
   ) {}
 
   ngOnInit() {
     this.loadCities();
     this.loadAttractions();
   }
+
+  openNotificationDialog(attraction: Attraction) {
+  const dialogRef = this.dialog.open(NotificationDialogComponent, {
+    width: '500px',
+    data: {
+      attractionId: attraction.id,
+      attractionName: attraction.name,
+      attractionLocation: attraction.location?.city || attraction.city
+    }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      this.snackBar.open('Notification créée avec succès', 'Fermer', {
+        duration: 2000
+      });
+    }
+  });
+}
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;

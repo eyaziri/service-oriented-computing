@@ -1,0 +1,49 @@
+<p>notifications-panel works!</p>
+<div class="notifications-panel">
+  <mat-card class="notifications-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>notifications_active</mat-icon>
+        Notifications Actives
+        <span class="badge" *ngIf="notifications.length > 0">
+          {{ notifications.length }}
+        </span>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="notifications-list" *ngIf="notifications.length > 0; else emptyState">
+        <mat-list>
+          <mat-list-item *ngFor="let notification of notifications" 
+            [class]="'notification-item severity-' + notification.severity">
+            <mat-icon matListItemIcon [color]="getSeverityColor(notification.severity)">
+              {{ getSeverityIcon(notification.severity) }}
+            </mat-icon>
+            
+            <div matListItemTitle>{{ notification.type }}</div>
+            <div matListItemLine>{{ notification.location }}</div>
+            <div matListItemLine class="notification-message">
+              {{ notification.message }}
+            </div>
+            <div matListItemLine class="notification-time">
+              {{ notification.timestamp | date:'short' }}
+            </div>
+            
+            <button mat-icon-button matListItemMeta 
+              (click)="resolveNotification(notification.alertId)"
+              matTooltip="Marquer comme résolu">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+          </mat-list-item>
+        </mat-list>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="empty-notifications">
+          <mat-icon>notifications_off</mat-icon>
+          <p>Aucune notification active</p>
+        </div>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
+</div>

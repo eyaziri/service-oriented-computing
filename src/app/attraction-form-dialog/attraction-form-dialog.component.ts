@@ -21,10 +21,7 @@ export class AttractionFormDialogComponent implements OnInit {
   loading = false;
   categories = Object.values(Category);
   
-  // Time options
   timeOptions: string[] = this.generateTimeOptions();
-  
-  // Image preview
   imagePreview: string | null = null;
 
   constructor(
@@ -41,38 +38,33 @@ export class AttractionFormDialogComponent implements OnInit {
     if (this.data.mode === 'edit' && this.data.attraction) {
       this.patchFormWithAttraction(this.data.attraction);
     }
-    
-    // Synchroniser le champ city à la racine avec location.city
     this.syncCityFields();
   }
 
   private createForm(): FormGroup {
     return this.fb.group({
-      // Étape 1 - Informations de base
       name: ['', [Validators.required, Validators.maxLength(200)]],
       description: ['', Validators.maxLength(2000)],
       category: ['', Validators.required],
       imageUrl: ['', Validators.pattern('https?://.+')],
       
-      // Étape 2 - Localisation
-      city: ['', [Validators.required, Validators.maxLength(100)]], // Champ à la racine (pour le JSON)
+      city: ['', [Validators.required, Validators.maxLength(100)]],
       location: this.fb.group({
         latitude: [null],
         longitude: [null],
         address: [''],
         postalCode: [''],
-        city: ['', [Validators.maxLength(100)]], // Pas required ici, sera synchronisé
+        city: ['', [Validators.maxLength(100)]],
         country: ['', [Validators.required, Validators.maxLength(100)]]
       }),
       
-      // Étape 3 - Détails
       entryPrice: [null, [Validators.min(0)]],
+      // ✅ CORRECTION: Utiliser openingHours et closingHours (pas Time)
       openingHours: ['09:00'],
       closingHours: ['18:00'],
       maxCapacity: [null, [Validators.min(1), Validators.max(10000)]],
       averageVisitDuration: [null, [Validators.min(5), Validators.max(480)]],
       
-      // Étape 4 - Contact
       websiteUrl: ['', Validators.pattern('https?://.+')],
       phoneNumber: ['', Validators.pattern(/^[\d\s\-\+\(\)]+$/)],
       email: ['', Validators.email],
@@ -81,20 +73,16 @@ export class AttractionFormDialogComponent implements OnInit {
     });
   }
 
-  // Synchroniser les champs city
   private syncCityFields(): void {
-    // Lorsque city à la racine change, mettre à jour location.city
     this.attractionForm.get('city')?.valueChanges.subscribe(value => {
       this.attractionForm.get('location.city')?.setValue(value, { emitEvent: false });
     });
 
-    // Lorsque location.city change, mettre à jour city à la racine
     this.attractionForm.get('location.city')?.valueChanges.subscribe(value => {
       this.attractionForm.get('city')?.setValue(value, { emitEvent: false });
     });
   }
 
-  // Navigation method
   goToNextStep(stepper: MatStepper, stepNumber: number): void {
     switch(stepNumber) {
       case 1:
@@ -122,17 +110,14 @@ export class AttractionFormDialogComponent implements OnInit {
     }
   }
 
-  // Gérer le changement de ville
   onCityChange(event: any): void {
     const cityValue = event.target?.value || '';
-    // Synchroniser les champs
     this.attractionForm.get('location.city')?.setValue(cityValue, { emitEvent: false });
   }
 
   private patchFormWithAttraction(attraction: Attraction): void {
     if (!attraction) return;
 
-    // Étape 1 - Informations de base
     this.attractionForm.patchValue({
       name: attraction.name || '',
       description: attraction.description || '',
@@ -140,37 +125,32 @@ export class AttractionFormDialogComponent implements OnInit {
       imageUrl: attraction.imageUrl || ''
     });
 
-    // Étape 2 - Localisation
-    // Remplir le champ city à la racine (vient de attraction.city)
     this.attractionForm.patchValue({
       city: attraction.city || ''
     });
 
-    // Remplir l'objet location
     if (attraction.location) {
       this.attractionForm.get('location')?.patchValue({
         latitude: attraction.location.latitude || null,
         longitude: attraction.location.longitude || null,
         address: attraction.location.address || '',
         postalCode: attraction.location.postalCode || '',
-        city: attraction.location.city || attraction.city || '', // Synchronisation automatique
+        city: attraction.location.city || attraction.city || '',
         country: attraction.location.country || ''
       });
     } else {
-      // Si pas de location, utiliser city à la racine
       this.attractionForm.get('location.city')?.setValue(attraction.city || '');
     }
 
-    // Étape 3 - Détails
+    // ✅ CORRECTION: Utiliser openingHours et closingHours
     this.attractionForm.patchValue({
       entryPrice: attraction.entryPrice,
-      openingHours: attraction.openingTime || '09:00',
-      closingHours: attraction.closingTime || '18:00',
+      openingHours: attraction.openingHours || '09:00',
+      closingHours: attraction.closingHours || '18:00',
       maxCapacity: attraction.maxCapacity,
       averageVisitDuration: attraction.averageVisitDuration
     });
 
-    // Étape 4 - Contact
     this.attractionForm.patchValue({
       websiteUrl: attraction.websiteUrl || '',
       phoneNumber: attraction.phoneNumber || '',
@@ -179,7 +159,6 @@ export class AttractionFormDialogComponent implements OnInit {
       isFeatured: attraction.isFeatured || false
     });
 
-    // Image preview
     if (attraction.imageUrl) {
       this.imagePreview = attraction.imageUrl;
     }
@@ -207,59 +186,86 @@ export class AttractionFormDialogComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.attractionForm.invalid) {
-      this.markFormGroupTouched(this.attractionForm);
-      return;
-    }
-
-    this.loading = true;
+  const formValue = this.attractionForm.value;
+  
+  // ✅ FORCEZ LE FORMAT EXACT COMME POSTMAN
+  const apiData = {
+    name: formValue.name.trim(),
+    description: formValue.description?.trim() || '',
+    category: formValue.category,
+    city: formValue.city.trim(),
+    location: {
+      latitude: formValue.location?.latitude ? 
+        parseFloat(formValue.location.latitude).toFixed(4) : "36.8093",  // ← .toFixed(4)
+      longitude: formValue.location?.longitude ? 
+        parseFloat(formValue.location.longitude).toFixed(4) : "10.1341", // ← .toFixed(4)
+      address: formValue.location?.address?.trim() || '',
+      postalCode: formValue.location?.postalCode?.trim() || '',
+      city: formValue.city.trim(),
+      country: formValue.location?.country?.trim() || 'Tunisie'
+    },
+    // ✅ IMPORTANT: Forcez en nombre décimal comme Postman (10.0, pas 10)
+    entryPrice: formValue.entryPrice ? 
+      parseFloat(formValue.entryPrice).toFixed(1) : "10.0",  // ← .toFixed(1)
     
-    const formValue = this.attractionForm.value;
+    openingHours: formValue.openingHours || '09:00',
+    closingHours: formValue.closingHours || '17:00',  // ← 17:00 comme Postman
     
-    // Formatage correct pour l'API - selon le JSON fourni
-    const apiData = {
-      name: formValue.name,
-      description: formValue.description || '',
-      category: formValue.category,
-      
-      // Champ city à la racine (important pour le backend)
-      city: formValue.city,
-      
-      // Location complète
-      location: {
-        latitude: formValue.location.latitude ? parseFloat(formValue.location.latitude) : null,
-        longitude: formValue.location.longitude ? parseFloat(formValue.location.longitude) : null,
-        address: formValue.location.address || '',
-        postalCode: formValue.location.postalCode || '',
-        city: formValue.location.city || formValue.city, // S'assurer que city est dans location aussi
-        country: formValue.location.country || ''
-      },
-      
-      // Détails avec conversion
-      entryPrice: formValue.entryPrice ? parseFloat(formValue.entryPrice) : null,
-      openingTime: formValue.openingHours || '09:00',
-      closingTime: formValue.closingHours || '18:00',
-      maxCapacity: formValue.maxCapacity ? parseInt(formValue.maxCapacity) : null,
-      
-      // Contact et URLs
-      imageUrl: formValue.imageUrl || '',
-      websiteUrl: formValue.websiteUrl || '',
-      phoneNumber: formValue.phoneNumber || '',
-      email: formValue.email || '',
-      
-      // Informations supplémentaires
-      averageVisitDuration: formValue.averageVisitDuration ? parseInt(formValue.averageVisitDuration) : null,
-      isActive: formValue.isActive !== undefined ? formValue.isActive : true,
-      isFeatured: formValue.isFeatured || false
-    };
+    maxCapacity: formValue.maxCapacity || 500,
+    imageUrl: formValue.imageUrl?.trim() || '',
+    websiteUrl: formValue.websiteUrl?.trim() || '',
+    
+    // ✅ Assurez-vous du format exact du téléphone
+    phoneNumber: this.formatPhoneNumber(formValue.phoneNumber?.trim() || ''),
+    
+    email: formValue.email?.trim() || '',
+    
+    // ✅ Forcez en nombre décimal aussi
+    averageVisitDuration: formValue.averageVisitDuration || 120,
+    
+    isActive: formValue.isActive !== undefined ? formValue.isActive : true,
+    isFeatured: formValue.isFeatured || false
+  };
+  
+  console.log('📤 JSON CORRIGÉ comme Postman:');
+  console.log(JSON.stringify(apiData, null, 2));
 
-    console.log('Données envoyées à l\'API:', JSON.stringify(apiData, null, 2));
+  if (this.data.mode === 'create') {
+    this.createAttraction(apiData);
+  } else {
+    this.updateAttraction(apiData);
+  }
+}
 
-    if (this.data.mode === 'create') {
-      this.createAttraction(apiData);
-    } else {
-      this.updateAttraction(apiData);
-    }
+// Ajoutez cette méthode pour formater le téléphone
+private formatPhoneNumber(phone: string): string {
+  if (!phone) return '+21612345678'; // Valeur par défaut comme Postman
+  
+  // Supprimez tous les espaces
+  phone = phone.replace(/\s/g, '');
+  
+  // Assurez-vous qu'il commence par +
+  if (!phone.startsWith('+')) {
+    phone = '+' + phone;
+  }
+  
+  return phone;
+}
+
+  private logFormErrors(formGroup: FormGroup, parentKey = ''): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      const fullKey = parentKey ? `${parentKey}.${key}` : key;
+      
+      if (control instanceof FormGroup) {
+        this.logFormErrors(control, fullKey);
+      } else {
+        const errors = control?.errors;
+        if (errors) {
+          console.log(`  ${fullKey}:`, errors);
+        }
+      }
+    });
   }
 
   private createAttraction(data: any): void {
@@ -267,19 +273,40 @@ export class AttractionFormDialogComponent implements OnInit {
       next: (response) => {
         this.loading = false;
         this.dialogRef.close(response);
-        this.snackBar.open('Attraction créée avec succès', 'Fermer', {
+        this.snackBar.open('✅ Attraction créée avec succès', 'Fermer', {
           duration: 3000
         });
       },
       error: (error) => {
         this.loading = false;
-        console.error('Error creating attraction:', error);
-        console.error('Error response:', error.error);
-        this.snackBar.open(
-          error.error?.message || 'Erreur lors de la création', 
-          'Fermer', 
-          { duration: 5000 }
-        );
+        console.error('❌ ERREUR COMPLÈTE:', error);
+        console.error('❌ Status:', error.status);
+        console.error('❌ Error body:', error.error);
+        console.error('❌ Error message:', error.message);
+        
+        let errorMessage = 'Erreur lors de la création';
+        
+        if (error.status === 400) {
+          if (error.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error.error?.errors) {
+            const errors = Object.entries(error.error.errors)
+              .map(([field, msg]) => `${field}: ${msg}`)
+              .join(', ');
+            errorMessage = `Erreurs de validation: ${errors}`;
+          } else if (typeof error.error === 'string') {
+            errorMessage = error.error;
+          } else {
+            errorMessage = 'Validation échouée. Vérifiez tous les champs.';
+          }
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        }
+        
+        this.snackBar.open(`❌ ${errorMessage}`, 'Fermer', { 
+          duration: 8000,
+          panelClass: ['error-snackbar']
+        });
       }
     });
   }
@@ -291,19 +318,25 @@ export class AttractionFormDialogComponent implements OnInit {
       next: (response) => {
         this.loading = false;
         this.dialogRef.close(response);
-        this.snackBar.open('Attraction mise à jour avec succès', 'Fermer', {
+        this.snackBar.open('✅ Attraction mise à jour avec succès', 'Fermer', {
           duration: 3000
         });
       },
       error: (error) => {
         this.loading = false;
-        console.error('Error updating attraction:', error);
-        console.error('Error response:', error.error);
-        this.snackBar.open(
-          error.error?.message || 'Erreur lors de la mise à jour', 
-          'Fermer', 
-          { duration: 5000 }
-        );
+        console.error('❌ Error updating attraction:', error);
+        
+        let errorMessage = 'Erreur lors de la mise à jour';
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.snackBar.open(errorMessage, 'Fermer', { 
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
       }
     });
   }
@@ -316,13 +349,46 @@ export class AttractionFormDialogComponent implements OnInit {
     return this.apiService.getCategoryDisplay(category);
   }
 
-  // Helper to mark all fields as touched for validation
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();
       
       if (control instanceof FormGroup) {
         this.markFormGroupTouched(control);
+      }
+    });
+  }
+
+  debugForm(): void {
+    console.log('🐛 DEBUG DU FORMULAIRE');
+    console.log('----------------------');
+    
+    const formValue = this.attractionForm.value;
+    
+    console.log('🎯 ÉTAT DU FORMULAIRE:');
+    console.log('- Valide:', this.attractionForm.valid);
+    console.log('- Touched:', this.attractionForm.touched);
+    console.log('- Dirty:', this.attractionForm.dirty);
+    console.log('- Pristine:', this.attractionForm.pristine);
+    
+    console.log('\n📋 VALEURS:');
+    console.table(formValue);
+    
+    console.log('\n❌ ERREURS:');
+    this.logFormErrors(this.attractionForm);
+    
+    console.log('\n🔍 CONTRÔLES INDIVIDUELS:');
+    Object.keys(formValue).forEach(key => {
+      const control = this.attractionForm.get(key);
+      if (control) {
+        console.log(`${key}:`, {
+          value: control.value,
+          valid: control.valid,
+          invalid: control.invalid,
+          errors: control.errors,
+          touched: control.touched,
+          dirty: control.dirty
+        });
       }
     });
   }

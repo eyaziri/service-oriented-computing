@@ -20,15 +20,6 @@
         <mat-icon>add</mat-icon>
         Nouvelle Attraction
       </button>
-      
-      <button 
-        mat-stroked-button 
-        color="primary"
-        (click)="exportToCSV()"
-        class="export-button">
-        <mat-icon>download</mat-icon>
-        Exporter
-      </button>
     </div>
   </div>
 
@@ -146,13 +137,6 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-slide-toggle 
-          [(ngModel)]="showActiveOnly" 
-          color="primary"
-          class="filter-toggle">
-          Afficher uniquement les actives
-        </mat-slide-toggle>
-
         <button 
           mat-raised-button 
           color="primary" 
@@ -238,13 +222,6 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Visiteurs</th>
             <td mat-cell *matCellDef="let attraction" [class]="getRowClass(attraction)">
               <div class="visitors-cell">
-                <button 
-                  mat-icon-button 
-                  color="primary"
-                  (click)="updateVisitors(attraction)"
-                  matTooltip="Modifier les visiteurs">
-                  <mat-icon>edit</mat-icon>
-                </button>
                 <div class="visitors-info">
                   <span class="current-visitors">{{ attraction.currentVisitors || 0 }}</span>
                   <span class="max-capacity" *ngIf="attraction.maxCapacity">
@@ -334,6 +311,15 @@
                   matTooltip="Voir détails">
                   <mat-icon>visibility</mat-icon>
                 </button>
+
+                <button 
+                  mat-icon-button 
+                  color="accent"
+                  (click)="openNotificationDialog(attraction)"
+                  matTooltip="Créer une notification">
+                  <mat-icon>notifications</mat-icon>
+                </button>
+
               </div>
             </td>
           </ng-container>
@@ -379,22 +365,4 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- Quick Actions Footer -->
-  <div class="quick-actions">
-    <h3>Actions rapides</h3>
-    <div class="action-buttons-row">
-      <button mat-stroked-button color="primary">
-        <mat-icon>add_photo_alternate</mat-icon>
-        Importer des images
-      </button>
-      <button mat-stroked-button color="primary">
-        <mat-icon>analytics</mat-icon>
-        Voir les statistiques
-      </button>
-      <button mat-stroked-button color="primary">
-        <mat-icon>backup</mat-icon>
-        Sauvegarder la base
-      </button>
-    </div>
-  </div>
 </div>

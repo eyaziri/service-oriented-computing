@@ -6,7 +6,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 // Angular Material Modules
 import { MatCheckboxModule } from '@angular/material/checkbox';
-
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -31,6 +30,9 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatListModule } from '@angular/material/list'; // AJOUTEZ CECI
+import { MatMenuModule } from '@angular/material/menu'; // AJOUTEZ CECI POUR LE MENU
+import { MatGridListModule } from '@angular/material/grid-list'; // OPTIONNEL
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -42,6 +44,8 @@ import { ReviewDialogComponent } from './components/review-dialog/review-dialog.
 import { AdminAttractionsComponent } from './admin-attractions/admin-attractions.component';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { AttractionFormDialogComponent } from './attraction-form-dialog/attraction-form-dialog.component';
+import { NotificationDialogComponent } from './notification-dialog/notification-dialog.component';
+import { NotificationsPanelComponent } from './notifications-panel/notifications-panel.component';
 
 @NgModule({
   declarations: [
@@ -53,7 +57,9 @@ import { AttractionFormDialogComponent } from './attraction-form-dialog/attracti
     ReviewDialogComponent,
     AdminAttractionsComponent,
     ConfirmDialogComponent,
-    AttractionFormDialogComponent
+    AttractionFormDialogComponent,
+    NotificationDialogComponent,
+    NotificationsPanelComponent
   ],
   imports: [
     BrowserModule,
@@ -63,7 +69,12 @@ import { AttractionFormDialogComponent } from './attraction-form-dialog/attracti
     FormsModule,
     ReactiveFormsModule,
     
-    // Material modules
+    // Material modules - AJOUTEZ LES NOUVEAUX MODULES
+    MatListModule,       // ← AJOUTEZ CECI
+    MatMenuModule,       // ← AJOUTEZ CECI POUR LE MENU DE NOTIFICATIONS
+    MatGridListModule,   // ← OPTIONNEL, UTILE POUR LES GRIDS
+    
+    // Modules existants
     MatDatepickerModule,
     MatNativeDateModule,
     MatSliderModule,
