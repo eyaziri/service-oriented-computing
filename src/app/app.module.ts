@@ -46,6 +46,12 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
 import { AttractionFormDialogComponent } from './attraction-form-dialog/attraction-form-dialog.component';
 import { NotificationDialogComponent } from './notification-dialog/notification-dialog.component';
 import { NotificationsPanelComponent } from './notifications-panel/notifications-panel.component';
+import { AlertPanelComponent } from './alert-panel/alert-panel.component';
+import { TourismStatisticsComponent } from './tourism-statistics/tourism-statistics.component';
+import { MonumentListComponent } from './monument-list/monument-list.component';
+import { MonumentDetailsDialogComponent } from './monument-details-dialog/monument-details-dialog.component';
+import { CompareMonumentsDialogComponent } from './compare-monuments-dialog/compare-monuments-dialog.component';
+import { CulturalHeritageComponent } from './cultural-heritage/cultural-heritage.component';
 
 @NgModule({
   declarations: [
@@ -59,7 +65,13 @@ import { NotificationsPanelComponent } from './notifications-panel/notifications
     ConfirmDialogComponent,
     AttractionFormDialogComponent,
     NotificationDialogComponent,
-    NotificationsPanelComponent
+    NotificationsPanelComponent,
+    AlertPanelComponent,
+    TourismStatisticsComponent,
+    MonumentListComponent,
+    MonumentDetailsDialogComponent,
+    CompareMonumentsDialogComponent,
+    CulturalHeritageComponent
   ],
   imports: [
     BrowserModule,

@@ -125,7 +125,620 @@ body {
     border-left-color: #17a2b8;
   }
 }
+// Styles pour les notifications toast
+.alert-severity-3 {
+  background-color: #fff3e0 !important;
+  color: #ef6c00 !important;
+}
 
+.alert-severity-4 {
+  background-color: #ffebee !important;
+  color: #d32f2f !important;
+}
+
+.alert-severity-5 {
+  background-color: #f44336 !important;
+  color: white !important;
+  
+  .mat-button {
+    color: white !important;
+  }
+}
+
+// Indicateur d'alertes sur les cartes
+.attraction-card {
+  position: relative;
+  
+  .alert-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #f44336;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    animation: pulse 2s infinite;
+    
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+.cultural-heritage-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+// Header
+.heritage-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-top: 30px;
+  
+  .page-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #333;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    
+    .title-icon {
+      font-size: 2.5rem;
+      color: #7b1fa2;
+    }
+  }
+  
+  .page-subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+}
+
+// Search Section
+.search-section {
+  margin-bottom: 30px;
+  
+  .search-card {
+    background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+    border-radius: 16px;
+    
+    .search-controls {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      
+      .search-field {
+        flex: 1;
+        min-width: 300px;
+        
+        ::ng-deep .mat-form-field-outline {
+          background-color: white;
+        }
+      }
+      
+      .unesco-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        mat-icon {
+          color: #ff9800;
+        }
+      }
+      
+      .search-button {
+        height: 56px;
+        padding: 0 30px;
+        
+        mat-icon {
+          margin-right: 8px;
+        }
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+      }
+    }
+  }
+}
+
+// Main Content Layout
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 30px;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Left Column - Monuments
+.left-column {
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    gap: 20px;
+    
+    p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+  }
+  
+  .section-header {
+    margin-bottom: 25px;
+    
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.8rem;
+      color: #333;
+      margin-bottom: 8px;
+      
+      .count-badge {
+        background: #7b1fa2;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      
+      mat-icon {
+        color: #7b1fa2;
+      }
+    }
+    
+    .section-subtitle {
+      color: #666;
+      font-size: 1rem;
+    }
+  }
+  
+  .no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    gap: 15px;
+    color: #999;
+    
+    mat-icon {
+      font-size: 48px;
+    }
+    
+    p {
+      font-size: 1.1rem;
+    }
+  }
+  
+  .monuments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+    
+    .monument-card {
+      transition: all 0.3s ease;
+      border-radius: 12px;
+      overflow: hidden;
+      
+      &.selected {
+        box-shadow: 0 0 0 3px #7b1fa2;
+        border: 3px solid #7b1fa2;
+      }
+      
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+      
+      mat-card-header {
+        position: relative;
+        padding-bottom: 10px;
+        
+        .unesco-icon {
+          font-size: 20px;
+          vertical-align: middle;
+          margin-left: 8px;
+        }
+        
+        .year-badge {
+          background: #e3f2fd;
+          color: #1976d2;
+          padding: 3px 10px;
+          border-radius: 15px;
+          font-size: 0.8rem;
+          margin-left: 10px;
+          font-weight: 500;
+        }
+        
+        .select-button {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+        }
+      }
+      
+      mat-card-content {
+        .monument-info {
+          .description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+          }
+          
+          .details {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            
+            .detail-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              color: #666;
+              font-size: 0.9rem;
+              
+              mat-icon {
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+              }
+            }
+          }
+        }
+        
+        .historical-significance {
+          background: #fff9e6;
+          padding: 15px;
+          border-radius: 8px;
+          margin-top: 15px;
+          
+          h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            
+            mat-icon {
+              color: #ff9800;
+            }
+          }
+          
+          p {
+            color: #555;
+            line-height: 1.6;
+            margin: 0;
+            font-size: 0.95rem;
+          }
+        }
+      }
+      
+      mat-card-actions {
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+        margin: 0 16px 16px;
+        
+        button {
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Right Column
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  
+  .comparison-panel, .stats-panel {
+    border-radius: 12px;
+    
+    mat-card-header {
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        
+        mat-icon {
+          color: #7b1fa2;
+        }
+      }
+    }
+  }
+  
+  .comparison-panel {
+    .selection-info {
+      .selected-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 15px 0;
+        
+        mat-chip {
+          justify-content: space-between;
+        }
+      }
+      
+      .comparison-controls {
+        margin-top: 20px;
+        
+        .criteria-field {
+          width: 100%;
+          margin-bottom: 15px;
+        }
+        
+        .comparison-buttons {
+          display: flex;
+          gap: 10px;
+          
+          button {
+            flex: 1;
+          }
+        }
+      }
+    }
+    
+    .no-selection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 150px;
+      gap: 15px;
+      color: #999;
+      
+      mat-icon {
+        font-size: 48px;
+        color: #ddd;
+      }
+      
+      p {
+        text-align: center;
+      }
+    }
+    
+    .comparison-results {
+      margin-top: 20px;
+      
+      .results-header {
+        margin-bottom: 15px;
+        
+        h4 {
+          color: #333;
+          font-size: 1.1rem;
+        }
+      }
+      
+      .comparison-items {
+        .comparison-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 0;
+          border-bottom: 1px solid #eee;
+          
+          &:last-child {
+            border-bottom: none;
+          }
+          
+          .criteria {
+            font-weight: 600;
+            color: #333;
+          }
+          
+          .value {
+            color: #666;
+            font-size: 0.9rem;
+          }
+        }
+      }
+      
+      .recommendation {
+        background: #e8f5e9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        
+        h5 {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: #2e7d32;
+          margin-bottom: 8px;
+          
+          mat-icon {
+            font-size: 20px;
+          }
+        }
+        
+        p {
+          color: #555;
+          margin: 0;
+          line-height: 1.5;
+        }
+      }
+      
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-weight: 500;
+        
+        &.success {
+          background: #e8f5e9;
+          color: #2e7d32;
+        }
+        
+        &.error {
+          background: #ffebee;
+          color: #c62828;
+        }
+      }
+    }
+  }
+  
+  .stats-panel {
+    .stats-loading {
+      display: flex;
+      justify-content: center;
+      padding: 30px 0;
+    }
+    
+    .stats-content {
+      .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+        
+        .stat-item {
+          text-align: center;
+          padding: 15px;
+          background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+          border-radius: 8px;
+          
+          .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #7b1fa2;
+            margin-bottom: 5px;
+          }
+          
+          .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+          }
+        }
+      }
+      
+      .monthly-stats {
+        h5 {
+          color: #333;
+          margin-bottom: 15px;
+          font-size: 1rem;
+        }
+        
+        .monthly-list {
+          max-height: 200px;
+          overflow-y: auto;
+          padding-right: 5px;
+          
+          .month-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            
+            &:last-child {
+              border-bottom: none;
+            }
+            
+            .month-name {
+              color: #555;
+            }
+            
+            .month-visitors {
+              font-weight: 600;
+              color: #333;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .cultural-heritage-container {
+    padding: 15px;
+  }
+  
+  .heritage-header {
+    .page-title {
+      font-size: 2.2rem;
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+  
+  .search-section {
+    .search-card {
+      .search-controls {
+        flex-direction: column;
+        align-items: stretch;
+        
+        .search-field {
+          min-width: 100%;
+        }
+      }
+    }
+  }
+  
+  .monuments-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .stats-overview {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .heritage-header {
+    .page-title {
+      font-size: 1.8rem;
+    }
+  }
+  
+  .stats-overview {
+    grid-template-columns: 1fr !important;
+  }
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
 // Animation de chargement
 @keyframes fadeIn {
   from {
@@ -136,6 +749,296 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+// Styles pour les modals
+.monument-details-dialog {
+  .mat-dialog-container {
+    border-radius: 16px !important;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+}
+
+// src/app/components/monument-list/monument-list.component.scss
+.cultural-heritage-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Header section
+.header-section {
+  margin-bottom: 32px;
+  
+  .header-content {
+    margin-bottom: 24px;
+    
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #2c3e50;
+      font-size: 2.5rem;
+      margin: 0 0 8px 0;
+      
+      .title-icon {
+        font-size: 2.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        color: #e67e22;
+      }
+    }
+    
+    .page-subtitle {
+      color: #7f8c8d;
+      font-size: 1.1rem;
+      margin: 0;
+    }
+  }
+  
+  .header-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    
+    .stat-card {
+      .stat-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        
+        .stat-icon {
+          width: 50px;
+          height: 50px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #3498db, #2980b9);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          
+          mat-icon {
+            color: white;
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+          }
+          
+          &.unesco-icon {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+          }
+        }
+        
+        .stat-info {
+          .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1;
+          }
+          
+          .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Comparison section
+.comparison-section {
+  margin-bottom: 24px;
+  
+  .selected-monuments {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    
+    .selected-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .comparison-actions {
+      display: flex;
+      gap: 8px;
+    }
+  }
+}
+
+// Filters section
+.filters-section {
+  margin-bottom: 32px;
+  
+  .search-filters {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 16px;
+    align-items: center;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+    
+    .search-field, .city-field {
+      width: 100%;
+    }
+  }
+}
+
+// Monuments grid
+.monuments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+  
+  .loading-state, .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #bdc3c7;
+      margin-bottom: 16px;
+    }
+    
+    h3 {
+      color: #7f8c8d;
+      margin: 0 0 8px 0;
+    }
+    
+    p {
+      color: #95a5a6;
+      margin: 0 0 24px 0;
+    }
+  }
+  
+  .monument-card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    &.selected {
+      border-color: #e74c3c;
+      background-color: #fff5f5;
+    }
+    
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .monument-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+      
+      .unesco-badge {
+        color: #e74c3c;
+      }
+    }
+    
+    .monument-subtitle {
+      display: flex;
+      gap: 16px;
+      color: #7f8c8d;
+      font-size: 0.9rem;
+      
+      .city, .period {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+    
+    .monument-info {
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px solid #ecf0f1;
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        .info-label {
+          color: #7f8c8d;
+          font-size: 0.9rem;
+        }
+        
+        .info-value {
+          font-weight: 500;
+          
+          &.unesco {
+            color: #e74c3c;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+    
+    .card-actions {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #ecf0f1;
+      padding: 16px 0 0;
+      margin: 0;
+    }
+  }
+}
+
+// Actions section
+.actions-section {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+// Animation pour les modals
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cdk-overlay-pane {
+  animation: modalFadeIn 0.3s ease-out;
 }
 
 .fade-in {

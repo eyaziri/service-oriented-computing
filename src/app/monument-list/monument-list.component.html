@@ -1,0 +1,226 @@
+<!-- src/app/components/monument-list/monument-list.component.html -->
+<div class="cultural-heritage-container">
+  <!-- En-tête -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="page-title">
+        <mat-icon class="title-icon">account_balance</mat-icon>
+        Patrimoine Culturel
+      </h1>
+      <p class="page-subtitle">
+        Découvrez les monuments historiques et leur riche héritage culturel
+      </p>
+    </div>
+    
+    <div class="header-stats">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>location_city</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">{{ totalMonuments }}</div>
+              <div class="stat-label">Monuments</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon unesco-icon">
+              <mat-icon>verified</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">{{ unescoMonuments }}</div>
+              <div class="stat-label">UNESCO</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Section de comparaison -->
+  <mat-card *ngIf="selectedMonuments.length > 0" class="comparison-section">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>compare</mat-icon>
+        Comparaison sélectionnée
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="selected-monuments">
+        <div class="selected-list">
+          <mat-chip *ngFor="let monument of selectedMonuments" 
+                   [removable]="true"
+                   (removed)="toggleSelection(monument)">
+            {{ monument.name }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        </div>
+        
+        <div class="comparison-actions">
+          <button mat-raised-button color="primary" 
+                  (click)="compareSelected()"
+                  [disabled]="selectedMonuments.length !== 2">
+            <mat-icon>compare_arrows</mat-icon>
+            Comparer ({{ selectedMonuments.length }}/2)
+          </button>
+          
+          <button mat-button color="warn" (click)="clearSelection()">
+            <mat-icon>clear_all</mat-icon>
+            Effacer
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Filtres de recherche -->
+  <mat-card class="filters-section">
+    <mat-card-content>
+      <div class="search-filters">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher un monument</mat-label>
+          <input matInput [(ngModel)]="searchTerm" 
+                 (keyup.enter)="search()"
+                 placeholder="Nom, ville, période...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="city-field">
+          <mat-label>Ville</mat-label>
+          <mat-select [(ngModel)]="selectedCity">
+            <mat-option value="">Toutes les villes</mat-option>
+            <mat-option *ngFor="let city of cities" [value]="city">
+              {{ city }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <button mat-raised-button color="primary" (click)="search()">
+          <mat-icon>search</mat-icon>
+          Rechercher
+        </button>
+        
+        <button mat-button (click)="clearSearch()">
+          <mat-icon>refresh</mat-icon>
+          Réinitialiser
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Liste des monuments -->
+  <div class="monuments-grid">
+    <!-- Loading state -->
+    <div *ngIf="loading" class="loading-state">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Chargement des monuments...</p>
+    </div>
+    
+    <!-- Empty state -->
+    <div *ngIf="!loading && filteredMonuments.length === 0" class="empty-state">
+      <mat-icon>location_off</mat-icon>
+      <h3>Aucun monument trouvé</h3>
+      <p *ngIf="searchTerm || selectedCity">
+        Essayez de modifier vos critères de recherche
+      </p>
+      <button mat-raised-button color="primary" (click)="clearSearch()">
+        <mat-icon>refresh</mat-icon>
+        Voir tous les monuments
+      </button>
+    </div>
+    
+    <!-- Grid of monuments -->
+    <mat-card *ngFor="let monument of filteredMonuments" 
+              class="monument-card"
+              [class.selected]="isSelected(monument)">
+      <mat-card-header>
+        <mat-card-title>
+          <div class="card-title-row">
+            <span class="monument-name">{{ monument.name }}</span>
+            <mat-icon *ngIf="monument.unescoHeritage" 
+                     class="unesco-badge"
+                     matTooltip="Patrimoine UNESCO">
+              verified
+            </mat-icon>
+          </div>
+        </mat-card-title>
+        <mat-card-subtitle>
+          <div class="monument-subtitle">
+            <span class="city">
+              <mat-icon>location_on</mat-icon>
+              {{ monument.city }}
+            </span>
+            <span class="period">
+              <mat-icon>schedule</mat-icon>
+              {{ monument.historicalPeriod }}
+            </span>
+          </div>
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="monument-info">
+          <div class="info-row">
+            <span class="info-label">Style architectural:</span>
+            <span class="info-value">{{ monument.architecturalStyle }}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Année de construction:</span>
+            <span class="info-value">{{ monument.yearBuilt }}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Statut UNESCO:</span>
+            <span class="info-value" [class.unesco]="monument.unescoHeritage">
+              {{ monument.unescoHeritage ? 'Oui' : 'Non' }}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions class="card-actions">
+        <button mat-button color="primary" (click)="viewDetails(monument)">
+          <mat-icon>info</mat-icon>
+          Détails
+        </button>
+        
+        <button mat-button color="accent" (click)="viewHistoricalInfo(monument)">
+          <mat-icon>history</mat-icon>
+          Historique
+        </button>
+        
+        <button mat-icon-button 
+                [color]="isSelected(monument) ? 'warn' : 'primary'"
+                (click)="toggleSelection(monument)">
+          <mat-icon>{{ isSelected(monument) ? 'check_circle' : 'add_circle' }}</mat-icon>
+        </button>
+        
+        <button mat-icon-button (click)="toggleFavorite(monument)">
+          <mat-icon>{{ monument.isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Actions supplémentaires -->
+  <div class="actions-section">
+    <button mat-raised-button color="accent" (click)="navigateToAdmin()">
+      <mat-icon>admin_panel_settings</mat-icon>
+      Administration des monuments
+    </button>
+    
+    <button mat-raised-button color="warn" (click)="compareSelected()"
+            [disabled]="selectedMonuments.length !== 2">
+      <mat-icon>compare</mat-icon>
+      Comparer les monuments sélectionnés
+    </button>
+  </div>
+</div>

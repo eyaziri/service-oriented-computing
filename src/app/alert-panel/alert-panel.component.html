@@ -1,0 +1,121 @@
+<div class="alert-panel" [class.show]="showAlertPanel">
+  <!-- Header du panneau -->
+  <div class="alert-panel-header">
+    <div class="header-left">
+      <mat-icon>notifications</mat-icon>
+      <h3>Alertes en direct</h3>
+      <span class="alert-count" *ngIf="recentAlerts.length > 0">
+        {{ recentAlerts.length }} / {{ allAlerts.length }}
+      </span>
+      <span class="alert-hint" *ngIf="recentAlerts.length === 3">
+        (3 dernières)
+      </span>
+    </div>
+    
+    <div class="header-right">
+      <!-- Boutons de test de débogage -->
+      <button *ngIf="debugMode" mat-icon-button 
+              (click)="sendTestBroadcast()"
+              matTooltip="Envoyer test broadcast">
+        <mat-icon>bug_report</mat-icon>
+      </button>
+      
+      <button mat-icon-button (click)="clearAlerts()" matTooltip="Effacer les alertes">
+        <mat-icon>clear_all</mat-icon>
+      </button>
+      <button mat-icon-button (click)="toggleAlertPanel()">
+        <mat-icon>{{ showAlertPanel ? 'close' : 'notifications' }}</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenu du panneau -->
+  <div class="alert-panel-content" *ngIf="showAlertPanel">
+    
+    <!-- État de connexion -->
+    <div class="connection-status" [class.connected]="isConnected">
+      <mat-icon *ngIf="isConnected">wifi</mat-icon>
+      <mat-icon *ngIf="!isConnected">wifi_off</mat-icon>
+      <span>{{ isConnected ? 'Connecté en temps réel' : 'Déconnecté' }}</span>
+      <span class="last-update" *ngIf="recentAlerts.length > 0">
+        Dernière mise à jour: {{ getCurrentTime() }}
+      </span>
+    </div>
+
+    <!-- Liste des 3 dernières alertes -->
+    <div class="alerts-list">
+      <div *ngFor="let alert of recentAlerts; let i = index" 
+           class="alert-item"
+           [class]="'severity-' + alert.severity"
+           [class.recent]="i === 0"
+           (click)="showAlertDetails(alert)">
+        
+        <!-- Indicateur "Nouveau" pour la plus récente -->
+        <div class="alert-new-indicator" *ngIf="i === 0">
+          <span class="new-badge">NOUVEAU</span>
+        </div>
+        
+        <div class="alert-icon">
+          <mat-icon>{{ getSeverityIcon(alert.severity) }}</mat-icon>
+          <span class="alert-age" matTooltip="{{ formatTimestamp(alert.timestamp) }}">
+            {{ getTimeAgo(alert.timestamp) }}
+          </span>
+        </div>
+        
+        <div class="alert-content">
+          <div class="alert-header">
+            <span class="alert-type">{{ alert.type }}</span>
+            <span class="alert-time-exact" matTooltip="Heure exacte">
+              <mat-icon>schedule</mat-icon>
+              {{ formatTimestamp(alert.timestamp) }}
+            </span>
+          </div>
+          
+          <p class="alert-message">{{ alert.message }}</p>
+          
+          <div class="alert-footer">
+            <span class="alert-location">
+              <mat-icon>location_on</mat-icon>
+              {{ alert.location }}
+            </span>
+            <span class="alert-severity">
+              <mat-icon>priority_high</mat-icon>
+              {{ getSeverityLabel(alert.severity) }}
+            </span>
+          </div>
+        </div>
+        
+        <button mat-icon-button class="alert-close" 
+                (click)="$event.stopPropagation(); dismissAlert(alert.id)"
+                matTooltip="Masquer cette alerte">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Aucune alerte -->
+    <div *ngIf="recentAlerts.length === 0" class="no-alerts">
+      <mat-icon>notifications_off</mat-icon>
+      <p>Aucune alerte récente</p>
+      <small>Les alertes s'afficheront ici en temps réel</small>
+    </div>
+
+    <!-- Lien pour voir toutes les alertes -->
+    <div class="view-all-alerts" *ngIf="allAlerts.length > 3">
+      <button mat-button color="primary" (click)="viewAllAlerts()">
+        <mat-icon>list</mat-icon>
+        Voir toutes les alertes ({{ allAlerts.length }})
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Badge flottant pour les alertes -->
+<div class="alert-badge" *ngIf="!showAlertPanel && recentAlerts.length > 0" (click)="toggleAlertPanel()">
+  <mat-icon [matBadge]="recentAlerts.length" matBadgeColor="warn">
+    notifications
+  </mat-icon>
+  <span class="badge-text" *ngIf="recentAlerts.length > 0">
+    {{ recentAlerts.length }}
+  </span>
+</div>

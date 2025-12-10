@@ -1,15 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../services/api.service';
 import { Attraction, Category } from '../../models/attraction.model';
+import { Subscription } from 'rxjs';
+import { AlertService, Alert } from '../../services/alert.service';
 
 @Component({
   selector: 'app-attractions-search',
   templateUrl: './attractions-search.component.html',
   styleUrls: ['./attractions-search.component.scss']
 })
-export class AttractionsSearchComponent implements OnInit {
+export class AttractionsSearchComponent implements OnInit, OnDestroy {
   searchForm: FormGroup;
   attractions: Attraction[] = [];
   filteredAttractions: Attraction[] = [];
@@ -21,6 +24,13 @@ export class AttractionsSearchComponent implements OnInit {
   showAdvancedFilters = false;
   priceRange = { min: 0, max: 100 };
   selectedRating = 0;
+
+  // Alertes
+  alerts: Alert[] = [];
+  relevantAlerts: Alert[] = [];
+  showAlertPanel = false;
+  private alertSubscription: Subscription | null = null;
+  private activeAlertCheckInterval: any;
 
   // Pagination
   currentPage = 1;
@@ -40,7 +50,9 @@ export class AttractionsSearchComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    private alertService: AlertService,
+    private snackBar: MatSnackBar
   ) {
     this.searchForm = this.fb.group({
       search: [''],
@@ -55,6 +67,131 @@ export class AttractionsSearchComponent implements OnInit {
   ngOnInit(): void {
     this.loadAttractions();
     this.loadFeaturedAttractions();
+    
+    // ⭐ AJOUT CRITIQUE : Initialiser le système d'alertes
+    this.initializeAlertSystem();
+  }
+
+  ngOnDestroy(): void {
+    if (this.alertSubscription) {
+      this.alertSubscription.unsubscribe();
+    }
+    
+    if (this.activeAlertCheckInterval) {
+      clearInterval(this.activeAlertCheckInterval);
+    }
+    
+    this.alertService.disconnect();
+  }
+
+  // Méthodes pour le système d'alertes
+  initializeAlertSystem(): void {
+    // Demander la permission pour les notifications
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    
+    // S'abonner aux nouvelles alertes
+    this.alertSubscription = this.alertService.alertReceived$.subscribe(alert => {
+      this.checkRelevantAlerts(alert);
+    });
+    
+    // Charger les alertes existantes
+    this.loadExistingAlerts();
+    
+    // Vérifier périodiquement les alertes pertinentes
+    this.activeAlertCheckInterval = setInterval(() => {
+      this.checkRelevantAlertsForCurrentFilters();
+    }, 30000);
+  }
+
+  loadExistingAlerts(): void {
+    this.alertService.getActiveAlerts().subscribe({
+      next: (response) => {
+        if (response.alerts) {
+          this.alerts = response.alerts.map((alert: any) => ({
+            id: alert.alertId || alert.id,
+            type: alert.type,
+            location: alert.location,
+            message: alert.message,
+            severity: alert.severity,
+            timestamp: alert.timestamp,
+            status: alert.status || 'ACTIVE'
+          }));
+          
+          this.checkRelevantAlertsForCurrentFilters();
+        }
+      },
+      error: (error) => {
+        console.error('Erreur chargement alertes:', error);
+      }
+    });
+  }
+
+  checkRelevantAlerts(alert: Alert): void {
+    const isRelevant = this.isAlertRelevant(alert);
+    
+    if (isRelevant) {
+      // Ajouter aux alertes pertinentes (éviter les doublons)
+      const exists = this.relevantAlerts.some(a => a.id === alert.id);
+      if (!exists) {
+        this.relevantAlerts.unshift(alert);
+        
+        // Limiter à 5 alertes pertinentes
+        if (this.relevantAlerts.length > 5) {
+          this.relevantAlerts.pop();
+        }
+        
+        // Afficher une notification pour les alertes importantes
+        if (alert.severity >= 3) {
+          this.showAlertToast(alert);
+        }
+      }
+    }
+  }
+
+  checkRelevantAlertsForCurrentFilters(): void {
+    const cityFilter = this.cityControl.value;
+    const categoryFilter = this.categoryControl.value;
+    
+    if (cityFilter || categoryFilter) {
+      this.relevantAlerts = this.alerts.filter(alert => 
+        this.isAlertRelevant(alert)
+      );
+    } else {
+      this.relevantAlerts = [];
+    }
+  }
+
+  isAlertRelevant(alert: Alert): boolean {
+    const cityFilter = this.cityControl.value?.toLowerCase();
+    const categoryFilter = this.categoryControl.value;
+    
+    if (cityFilter && alert.location.toLowerCase().includes(cityFilter)) {
+      return true;
+    }
+    
+    if (categoryFilter && alert.type.toLowerCase() === categoryFilter.toLowerCase()) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  showAlertToast(alert: Alert): void {
+    const message = `${alert.type}: ${alert.message} (${alert.location})`;
+    const action = alert.severity >= 4 ? 'Détails' : 'OK';
+    
+    const snackBarRef = this.snackBar.open(message, action, {
+      duration: alert.severity >= 4 ? 10000 : 5000,
+      panelClass: [`alert-severity-${alert.severity}`, 'alert-snackbar'],
+      horizontalPosition: 'end',
+      verticalPosition: 'top'
+    });
+    
+    snackBarRef.onAction().subscribe(() => {
+      this.showAlertPanel = true;
+    });
   }
 
   // Getters pour les contrôles du formulaire
@@ -78,89 +215,66 @@ export class AttractionsSearchComponent implements OnInit {
     return this.searchForm.get('maxPrice') as FormControl;
   }
 
-  // Getters pour les valeurs
-  get search(): string {
-    return this.searchForm.get('search')?.value || '';
-  }
-
-  get category(): string {
-    return this.searchForm.get('category')?.value || '';
-  }
-
-  get city(): string {
-    return this.searchForm.get('city')?.value || '';
-  }
-
-  get minPrice(): number {
-    return this.searchForm.get('minPrice')?.value || 0;
-  }
-
-  get maxPrice(): number {
-    return this.searchForm.get('maxPrice')?.value || 100;
-  }
-
   loadAttractions(): void {
-  this.isLoading = true;
-  
-  this.apiService.searchAttractions(this.buildSearchParams()).subscribe({
-    next: (response) => {
-      this.attractions = response.content || [];
-      this.totalItems = response.totalElements || 0;
-      this.applyFiltersAndSort();
-      this.isLoading = false;
-    },
-    error: (error) => {
-      console.error('Error loading attractions:', error);
-      this.attractions = [];
-      this.totalItems = 0;
-      this.filteredAttractions = [];
-      this.isLoading = false;
-    }
-  });
-}
-
-buildSearchParams(): any {
-  const formValue = this.searchForm.value;
-  const params: any = {
-    page: this.currentPage - 1,
-    size: this.itemsPerPage
-  };
-
-  if (formValue.search) {
-    // Utiliser la recherche rapide ou avancée selon le besoin
-    return { query: formValue.search, ...params };
-  }
-  
-  if (formValue.category) params.category = formValue.category;
-  if (formValue.city) params.city = formValue.city;
-  if (formValue.minPrice) params.minPrice = formValue.minPrice;
-  if (formValue.maxPrice) params.maxPrice = formValue.maxPrice;
-  if (formValue.minRating) params.minRating = formValue.minRating;
-
-  return params;
-}
-
-  loadFeaturedAttractions(): void {
-    this.apiService.getFeaturedAttractions().subscribe(attractions => {
-      // Vous pouvez utiliser ces attractions pour une section spéciale
+    this.isLoading = true;
+    
+    this.apiService.searchAttractions(this.buildSearchParams()).subscribe({
+      next: (response) => {
+        this.attractions = response.content || [];
+        this.totalItems = response.totalElements || 0;
+        this.applyFiltersAndSort();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading attractions:', error);
+        this.attractions = [];
+        this.totalItems = 0;
+        this.filteredAttractions = [];
+        this.isLoading = false;
+      }
     });
   }
 
-  
+  buildSearchParams(): any {
+    const formValue = this.searchForm.value;
+    const params: any = {
+      page: this.currentPage - 1,
+      size: this.itemsPerPage
+    };
+
+    if (formValue.search) {
+      return { query: formValue.search, ...params };
+    }
+    
+    if (formValue.category) params.category = formValue.category;
+    if (formValue.city) params.city = formValue.city;
+    if (formValue.minPrice) params.minPrice = formValue.minPrice;
+    if (formValue.maxPrice) params.maxPrice = formValue.maxPrice;
+    if (formValue.minRating) params.minRating = formValue.minRating;
+
+    return params;
+  }
+
+  loadFeaturedAttractions(): void {
+    this.apiService.getFeaturedAttractions().subscribe(attractions => {
+      // Traitement des attractions en vedette
+    });
+  }
 
   onSearch(): void {
     this.currentPage = 1;
     this.searchParams = this.buildSearchParams();
     this.loadAttractions();
+    
+    // Vérifier les alertes pertinentes après une recherche
+    this.checkRelevantAlertsForCurrentFilters();
   }
 
   applyFiltersAndSort(): void {
     let filtered = [...this.attractions];
 
-    // Appliquer le tri
     filtered = this.sortAttractions(filtered);
 
-    // Appliquer les filtres additionnels
     if (this.selectedRating > 0) {
       filtered = filtered.filter(a => a.rating >= this.selectedRating);
     }
@@ -238,14 +352,12 @@ buildSearchParams(): any {
     return Math.ceil(this.totalItems / this.itemsPerPage);
   }
 
-  // Ajout des méthodes manquantes
   getPageNumbers(): number[] {
     const pages: number[] = [];
     const maxVisible = 5;
     let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
     let end = Math.min(this.totalPages, start + maxVisible - 1);
     
-    // Ajuster le début si nous sommes proche de la fin
     if (end - start + 1 < maxVisible) {
       start = Math.max(1, end - maxVisible + 1);
     }
@@ -261,8 +373,6 @@ buildSearchParams(): any {
     return `${value}€`;
   }
 
-  // Méthode pour résoudre le problème de TypeScript avec mat-slider
-  // (le slider nécessite une fonction pour formater l'affichage)
   get formatPriceFunction(): (value: number) => string {
     return (value: number) => this.formatPrice(value);
   }

@@ -1,0 +1,269 @@
+<!-- src/app/components/monument-details-dialog/monument-details-dialog.component.html -->
+<div class="monument-details-container">
+  <!-- En-tête avec bouton de fermeture -->
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Détails du monument</h2>
+    <button mat-icon-button (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-content">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des informations...</p>
+  </div>
+
+  <!-- Contenu principal -->
+  <div *ngIf="!loading && monument" class="details-content">
+    <mat-tab-group [selectedIndex]="activeTabIndex" (selectedTabChange)="onTabChange($event)">
+      
+      <!-- Onglet Informations Générales -->
+      <mat-tab label="Informations">
+        <div class="tab-content">
+          <div class="monument-header">
+            <h1 class="monument-title">{{ monument.name }}</h1>
+            <div class="monument-badges">
+              <mat-chip *ngIf="monument.unescoHeritage" color="accent">
+                <mat-icon>verified</mat-icon>
+                UNESCO
+              </mat-chip>
+              <mat-chip>
+                <mat-icon>location_city</mat-icon>
+                {{ monument.architecturalStyle }}
+              </mat-chip>
+            </div>
+          </div>
+          
+          <div class="monument-info-grid">
+            <div class="info-card">
+              <mat-card>
+                <mat-card-header>
+                  <mat-card-title>
+                    <mat-icon>location_on</mat-icon>
+                    Localisation
+                  </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <p class="info-value">{{ monument.city }}</p>
+                </mat-card-content>
+              </mat-card>
+            </div>
+            
+            <div class="info-card">
+              <mat-card>
+                <mat-card-header>
+                  <mat-card-title>
+                    <mat-icon>calendar_today</mat-icon>
+                    Période historique
+                  </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <p class="info-value">{{ monument.historicalPeriod }}</p>
+                  <p class="info-subtext">Année: {{ monument.yearBuilt }}</p>
+                </mat-card-content>
+              </mat-card>
+            </div>
+            
+            <div class="info-card">
+              <mat-card>
+                <mat-card-header>
+                  <mat-card-title>
+                    <mat-icon>architecture</mat-icon>
+                    Style architectural
+                  </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <p class="info-value">{{ monument.architecturalStyle }}</p>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+      
+      <!-- Onglet Historique -->
+      <mat-tab label="Historique">
+        <div class="tab-content">
+          <div *ngIf="historicalInfo" class="historical-content">
+            <!-- Description -->
+            <mat-card class="section-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>description</mat-icon>
+                  Description
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p class="description-text">{{ historicalInfo.description }}</p>
+              </mat-card-content>
+            </mat-card>
+            
+            <!-- Importance historique -->
+            <mat-card class="section-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>history_edu</mat-icon>
+                  Importance historique
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p>{{ historicalInfo.historicalSignificance }}</p>
+              </mat-card-content>
+            </mat-card>
+            
+            <!-- Importance culturelle -->
+            <mat-card class="section-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>museum</mat-icon>
+                  Importance culturelle
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p>{{ historicalInfo.culturalImportance }}</p>
+              </mat-card-content>
+            </mat-card>
+            
+            <!-- Classification officielle -->
+            <mat-card class="section-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>gavel</mat-icon>
+                  Classification officielle
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p>{{ historicalInfo.officialClassification }}</p>
+              </mat-card-content>
+            </mat-card>
+            
+            <!-- Historique des restaurations -->
+            <mat-card *ngIf="historicalInfo.restorationHistory.length > 0" 
+                     class="section-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>construction</mat-icon>
+                  Restaurations
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <mat-list>
+                  <mat-list-item *ngFor="let restoration of historicalInfo.restorationHistory; let i = index">
+                    <mat-icon matListItemIcon>restore</mat-icon>
+                    <div matListItemTitle>{{ restoration }}</div>
+                  </mat-list-item>
+                </mat-list>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          
+          <div *ngIf="!historicalInfo" class="no-data">
+            <mat-icon>info</mat-icon>
+            <p>Aucune information historique disponible</p>
+          </div>
+        </div>
+      </mat-tab>
+      
+      <!-- Onglet Statistiques -->
+      <mat-tab label="Statistiques">
+        <div class="tab-content">
+          <div *ngIf="touristStats" class="stats-content">
+            <!-- Statistiques annuelles -->
+            <mat-card class="stats-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>people</mat-icon>
+                  Statistiques touristiques {{ touristStats.year }}
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <div class="stat-number">{{ touristStats.totalVisitors | number }}</div>
+                    <div class="stat-label">Total visiteurs</div>
+                  </div>
+                  
+                  <div class="stat-item">
+                    <div class="stat-number">{{ touristStats.internationalVisitors | number }}</div>
+                    <div class="stat-label">Visiteurs internationaux</div>
+                  </div>
+                  
+                  <div class="stat-item">
+                    <div class="stat-number">
+                      {{ touristStats.growthRate | percent:'1.1-1' }}
+                    </div>
+                    <div class="stat-label">Taux de croissance</div>
+                  </div>
+                </div>
+                
+                <!-- Graphique des statistiques mensuelles -->
+                <div *ngIf="touristStats.monthlyStats.length > 0" class="monthly-stats">
+                  <h3>Statistiques mensuelles</h3>
+                  <div class="stats-chart">
+                    <div *ngFor="let monthStat of touristStats.monthlyStats" class="month-bar">
+                      <div class="bar-label">{{ monthStat.month }}</div>
+                      <div class="bar-container">
+                        <div class="bar" [style.width.%]="getBarWidth(monthStat.visitors, touristStats.monthlyStats)"></div>
+                        <span class="bar-value">{{ monthStat.visitors }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          
+          <div *ngIf="!touristStats" class="no-data">
+            <mat-icon>bar_chart</mat-icon>
+            <p>Aucune statistique touristique disponible</p>
+          </div>
+        </div>
+      </mat-tab>
+      
+      <!-- Onglet Comparaison -->
+      <mat-tab label="Comparaison">
+        <div class="tab-content">
+          <div class="comparison-section">
+            <h3>Comparer avec un autre monument</h3>
+            
+            <!-- Sélection du monument à comparer -->
+            <div class="comparison-input">
+              <mat-form-field appearance="outline">
+                <mat-label>ID du monument à comparer</mat-label>
+                <input matInput [(ngModel)]="compareMonumentId" 
+                       placeholder="Ex: M002">
+              </mat-form-field>
+              
+              <button mat-raised-button color="primary" 
+                      (click)="compareWithOther()"
+                      [disabled]="!compareMonumentId.trim() || comparing">
+                <mat-icon *ngIf="!comparing">compare_arrows</mat-icon>
+                <mat-spinner *ngIf="comparing" diameter="20"></mat-spinner>
+                Comparer
+              </button>
+            </div>
+            
+            <!-- Résultat de la comparaison -->
+            <div *ngIf="comparisonResult" class="comparison-result">
+              <mat-card>
+                <mat-card-header>
+                  <mat-card-title>Résultat de la comparaison</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="comparison-grid">
+                    <div *ngFor="let key of getComparisonKeys()" class="comparison-item">
+                      <div class="comparison-label">{{ key }}</div>
+                      <div class="comparison-value">{{ comparisonResult[key] }}</div>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+      
+    </mat-tab-group>
+  </div>
+</div>
